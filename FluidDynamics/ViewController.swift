@@ -13,6 +13,7 @@ class ViewController: UIViewController {
     var densities : [Double] = [Double](count: CELL_COUNT, repeatedValue: 0);
     
     @IBOutlet var uiImageView: UIImageView!
+    var uiImage : UIImage?;
     
     required init(coder aDecoder: NSCoder)
     {
@@ -23,7 +24,7 @@ class ViewController: UIViewController {
     {
         super.viewDidLoad()
         
-        dispatchSolve();
+        dispatchSolve(); 
     }
 
     func dispatchSolve()
@@ -34,9 +35,21 @@ class ViewController: UIViewController {
         }
         .main
         {
-            self.uiImageView.image = renderFluidDynamics(self.densities);
+            self.dispatchRender();
           
             self.dispatchSolve();
+        }
+    }
+    
+    func dispatchRender()
+    {
+        Async.background
+            {
+                self.uiImage = renderFluidDynamics(self.densities);
+            }
+            .main
+            {
+                self.uiImageView.image = self.uiImage;
         }
     }
 

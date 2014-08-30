@@ -10,13 +10,15 @@ import Foundation
 
 var ii : Int = 0;
 
-let GRID_WIDTH = 100;
-let GRID_HEIGHT = 100;
+let GRID_WIDTH = 200;
+let GRID_HEIGHT = 200;
+let DBL_GRID_HEIGHT = Double(GRID_HEIGHT);
 let CELL_COUNT = (GRID_WIDTH + 2) * (GRID_HEIGHT + 2);
 
-let dt = 0.52;
+let dt = 0.25;
 let visc = 0.0;
 let diff = 0.0;
+let linearSolverIterations = 2;
 
 var d = [Double](count: CELL_COUNT, repeatedValue: 0);
 var dOld = [Double](count: CELL_COUNT, repeatedValue: 0);
@@ -28,16 +30,23 @@ var curl = [Double](count: CELL_COUNT, repeatedValue: 0);
 
 func fluidDynamicsStep() -> [Double]
 {
-    for i in 45 ..< 55
+    let startTime : CFAbsoluteTime = CFAbsoluteTimeGetCurrent();
+    
+    for i in 80 ..< 120
     {
-        for j in 90 ..< 100
+        for j in 195 ..< 200
         {
-            d[getIndex(i, j)] = 1;
+            if (arc4random() % 100 > 90)
+            {
+                d[getIndex(i, j)] = 1;
+            }
         }
     }
     
     velocitySolver();
     densitySolver();
+    
+    println("CFD SOLVE:" + NSString(format: "%.4f", CFAbsoluteTimeGetCurrent() - startTime));
     
     return d;
 }
@@ -50,75 +59,130 @@ func densitySolver()
     d = diffuse(0, d, dOld, diff);
     swapD();
     
-    d = advect(0, d, dOld, u, v, clipValue: false);
+    d = advect(0, dOld, u, v);
     
     dOld = [Double](count: CELL_COUNT, repeatedValue: 0);
 }
 
 func velocitySolver()
 {
-    u = addSource(u, uOld);
-    v = addSource(v, vOld);
+    //u = addSource(u, uOld);
+    //v = addSource(v, vOld);
+    
+    addSourceUV();
     
     vorticityConfinement();
     
-    u = addSource(u, uOld);
-    v = addSource(v, vOld);
+    // u = addSource(u, uOld);
+    // v = addSource(v, vOld);
+    
+    addSourceUV();
     
     buoyancy();
     
     v = addSource(v, vOld);
     
     swapU();
-    u = diffuse(0, u, uOld, visc);
-    
     swapV();
-    v = diffuse(0, v, vOld, visc);
+    
+    diffuseUV();
     
     project();
     
     swapU();
     swapV();
+
+    advectUV();
     
-    u = advect(1, u, uOld, uOld, vOld);
-    v = advect(2, v, vOld, uOld, vOld);
-    
-    // make an incompressible field
     project()
     
     uOld = [Double](count: CELL_COUNT, repeatedValue: 0);
     vOld = [Double](count: CELL_COUNT, repeatedValue: 0);
 }
 
-func advect (b:Int, unused:[Double], d0:[Double], du:[Double], dv:[Double], clipValue : Bool = false) -> [Double]
+func advectUV()
+{
+    let dt0 = dt * DBL_GRID_HEIGHT;
+    
+    let dt0x = dt * DBL_GRID_HEIGHT;
+    let dt0y = dt * DBL_GRID_HEIGHT;
+    
+    for var i = GRID_HEIGHT; i >= 1; i--
+    {
+        for var j = GRID_HEIGHT; j >= 1; j--
+        {
+            let index = getIndex(i, j);
+            
+            var x = Double(i) - dt0x * uOld[index];
+            var y = Double(j) - dt0y * vOld[index];
+            
+            if (x > DBL_GRID_HEIGHT + 0.5)
+            {
+                x = DBL_GRID_HEIGHT + 0.5;
+            }
+            if (x < 0.5)
+            {
+                x = 0.5;
+            }
+            
+            if (y > DBL_GRID_HEIGHT + 0.5)
+            {
+                y = DBL_GRID_HEIGHT + 0.5;
+            }
+            
+            if (y < 0.5)
+            {
+                y = 0.5;
+            }
+            
+            let i0 = Int(x);
+            let i1 = i0 + 1.0;
+            
+            let j0 = Int(y);
+            let j1 = j0 + 1;
+            
+            let s1 = x - Double(i0);
+            let s0 = 1 - s1;
+            let t1 = y - Double(j0);
+            let t0 = 1 - t1;
+            
+            u[index] = s0 * (t0 * u[getIndex(i0, j0)] + t1 * uOld[getIndex(i0, j1)]) + s1 * (t0 * uOld[getIndex(i1, j0)] + t1 * uOld[getIndex(i1, j1)]);
+            v[index] = s0 * (t0 * v[getIndex(i0, j0)] + t1 * vOld[getIndex(i0, j1)]) + s1 * (t0 * vOld[getIndex(i1, j0)] + t1 * vOld[getIndex(i1, j1)]);
+        }
+    }
+
+}
+
+func advect (b:Int, d0:[Double], du:[Double], dv:[Double]) -> [Double]
 {
     var returnArray = [Double](count: CELL_COUNT, repeatedValue: 0.0)
+
+    let dt0 = dt * DBL_GRID_HEIGHT;
     
-    let dt0 = dt * Double(GRID_HEIGHT);
-    
-    let dt0x = dt * Double(GRID_HEIGHT);
-    let dt0y = dt * Double(GRID_HEIGHT);
+    let dt0x = dt * DBL_GRID_HEIGHT;
+    let dt0y = dt * DBL_GRID_HEIGHT;
 
     for var i = GRID_HEIGHT; i >= 1; i--
     {
         for var j = GRID_HEIGHT; j >= 1; j--
         {
             let index = getIndex(i, j);
+            
             var x = Double(i) - dt0x * du[index];
             var y = Double(j) - dt0y * dv[index];
-            
-            if (x > Double(GRID_HEIGHT) + 0.5)
+        
+            if (x > DBL_GRID_HEIGHT + 0.5)
             {
-                x = Double(GRID_HEIGHT) + 0.5;
+                x = DBL_GRID_HEIGHT + 0.5;
             }
             if (x < 0.5)
             {
                 x = 0.5;
             }
    
-            if (y > Double(GRID_HEIGHT) + 0.5)
+            if (y > DBL_GRID_HEIGHT + 0.5)
             {
-                y = Double(GRID_HEIGHT) + 0.5;
+                y = DBL_GRID_HEIGHT + 0.5;
             }
             
             if (y < 0.5)
@@ -139,17 +203,7 @@ func advect (b:Int, unused:[Double], d0:[Double], du:[Double], dv:[Double], clip
             
             var cellValue = s0 * (t0 * d0[getIndex(i0, j0)] + t1 * d0[getIndex(i0, j1)]) + s1 * (t0 * d0[getIndex(i1, j0)] + t1 * d0[getIndex(i1, j1)]);
             
-            if clipValue
-            {
-                if cellValue < 0
-                {
-                    cellValue = 0;
-                }
-                else if cellValue > 1
-                {
-                    cellValue = 1;
-                }
-            }
+            d[getIndex(i, j)] = d[getIndex(i, j)] * 0.999;
 
             returnArray[index] = cellValue;
         }
@@ -170,7 +224,7 @@ func project()
     {
         for var j = GRID_HEIGHT; j >= 1; j--
         {
-            div[getIndex(i, j)] = (u[getIndex(i+1, j)] - u[getIndex(i-1, j)] + v[getIndex(i, j+1)] - v[getIndex(i, j-1)]) * -0.5 / Double(GRID_HEIGHT);
+            div[getIndex(i, j)] = (u[getIndex(i+1, j)] - u[getIndex(i-1, j)] + v[getIndex(i, j+1)] - v[getIndex(i, j-1)]) * -0.5 / DBL_GRID_HEIGHT;
             
             p[getIndex(i, j)] = Double(0.0);
         }
@@ -186,8 +240,8 @@ func project()
     {
         for var j = GRID_HEIGHT; j >= 1; j--
         {
-            u[getIndex(i, j)] -= 0.5 * Double(GRID_HEIGHT) * (p[getIndex(i+1, j)] - p[getIndex(i-1, j)]);
-            v[getIndex(i, j)] -= 0.5 * Double(GRID_HEIGHT) * (p[getIndex(i, j+1)] - p[getIndex(i, j-1)]);
+            u[getIndex(i, j)] -= 0.5 * DBL_GRID_HEIGHT * (p[getIndex(i+1, j)] - p[getIndex(i-1, j)]);
+            v[getIndex(i, j)] -= 0.5 * DBL_GRID_HEIGHT * (p[getIndex(i, j+1)] - p[getIndex(i, j-1)]);
         }
     }
     
@@ -195,9 +249,27 @@ func project()
     v = setBoundry(2, v);
 }
 
+func diffuseUV()
+{
+    let a:Double = dt * diff * Double(CELL_COUNT);
+    let c:Double = 1 + 4 * a
+    
+    for var k = 0; k < linearSolverIterations ; k++
+    {
+        for var i = GRID_WIDTH; i >= 1; i--
+        {
+            for var j = GRID_HEIGHT; j >= 1; j--
+            {
+                u[getIndex(i, j)] = (a * ( u[getIndex(i-1, j)] + u[getIndex(i+1, j)] + u[getIndex(i, j-1)] + u[getIndex(i, j+1)]) + uOld[getIndex(i, j)]) / c;
+                
+                v[getIndex(i, j)] = (a * ( v[getIndex(i-1, j)] + v[getIndex(i+1, j)] + v[getIndex(i, j-1)] + v[getIndex(i, j+1)]) + vOld[getIndex(i, j)]) / c;
+            }
+        }
+    }
+}
+
 func linearSolver(b:Int, x:[Double], x0:[Double], a:Double, c:Double) -> [Double]
 {
-    let linearSolverIterations = 2;
     var returnArray = [Double](count: CELL_COUNT, repeatedValue: 0.0)
     
     for var k = 0; k < linearSolverIterations ; k++
@@ -257,20 +329,11 @@ func buoyancy()
 // always on vorticityConfinement(uOld, vOld);
 func vorticityConfinement()
 {
-    var dw_dx:Double;
-    var dw_dy:Double;
-    var length:Double;
-    var v:Double;
-
-    
-    // Calculate magnitude of curlf(u,v) for each cell. (|w|)
-    var  tt:Double;
-    
     for var i = GRID_WIDTH; i >= 1; i--
     {
         for var j = GRID_HEIGHT; j >= 1; j--
         {
-            tt=curlf(i, j)
+            let tt=curlf(i, j)
             curl[getIndex(i, j)] = tt<0 ? tt * -1:tt;
         }
     }
@@ -281,18 +344,16 @@ func vorticityConfinement()
         {
             
             // Find derivative of the magnitude (n = del |w|)
-            dw_dx = (curl[getIndex(i + 1, j)] - curl[getIndex(i - 1, j)]) * 0.5;
-            dw_dy = (curl[getIndex(i, j + 1)] - curl[getIndex(i, j - 1)]) * 0.5;
-            
-            // Calculate vector length. (|n|)
-            // Add small factor to prevent divide by zeros.
-            length = sqrt(dw_dx * dw_dx + dw_dy * dw_dy) + 0.000001;
+            var dw_dx = (curl[getIndex(i + 1, j)] - curl[getIndex(i - 1, j)]) * 0.5;
+            var dw_dy = (curl[getIndex(i, j + 1)] - curl[getIndex(i, j - 1)]) * 0.5;
+
+            let length = hypot(dw_dx, dw_dy) + 0.000001;
             
             // N = ( n/|n| )
             dw_dx /= length;
             dw_dy /= length;
             
-            v = curlf(i, j);
+            var v = curlf(i, j);
             
             // N x w
             uOld[getIndex(i, j)] = dw_dy * -v;
@@ -344,6 +405,15 @@ func setBoundry(b:Int, x:[Double]) -> [Double]
     returnArray[getIndex(GRID_HEIGHT+1, GRID_HEIGHT+1)] = 0.5 * (x[getIndex(GRID_HEIGHT, GRID_HEIGHT+1)] + x[getIndex(GRID_HEIGHT+1, GRID_HEIGHT)]);
     
     return returnArray;
+}
+
+func addSourceUV()
+{
+    for var i = CELL_COUNT - 1; i >= 0; i--
+    {
+        u[i] = u[i] + dt * uOld[i];
+        v[i] = v[i] + dt * vOld[i];
+    }
 }
 
 func addSource(x:[Double], x0:[Double]) -> [Double]
