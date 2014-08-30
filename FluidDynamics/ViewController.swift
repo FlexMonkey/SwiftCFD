@@ -9,17 +9,36 @@
 import UIKit
 
 class ViewController: UIViewController {
-                            
-    override func viewDidLoad() {
+    
+    var densities : [Double] = [Double](count: CELL_COUNT, repeatedValue: 0);
+    
+    @IBOutlet var uiImageView: UIImageView!
+    
+    required init(coder aDecoder: NSCoder)
+    {
+        super.init(coder: aDecoder);
+    }
+    
+    override func viewDidLoad()
+    {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+        
+        dispatchSolve();
     }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    func dispatchSolve()
+    {
+        Async.background
+        {
+            self.densities = fluidDynamicsStep()
+        }
+        .main
+        {
+            self.uiImageView.image = renderFluidDynamics(self.densities);
+          
+            self.dispatchSolve();
+        }
     }
-
 
 }
 

@@ -10,7 +10,7 @@ import Foundation
 
 struct FluidDynamicsCell
 {
-    var density : Double = 0;
+    var density : Double = 0.01;
     var u : Double = 0;
     var v : Double = 0;
     var curl : Double = 0;
@@ -19,5 +19,11 @@ struct FluidDynamicsCell
     {
         self.u = value.u;
         self.v = value.v;
+    }
+    
+    mutating func addUV(value:(u : Double, v : Double))
+    {
+        self.u = self.u + value.u;
+        self.v = self.v + value.v;
     }
 }
