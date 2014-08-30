@@ -24,9 +24,31 @@ class ViewController: UIViewController {
     {
         super.viewDidLoad()
         
-        dispatchSolve(); 
+        dispatchSolve();
     }
 
+    override func touchesMoved(touches: NSSet!, withEvent event: UIEvent!)
+    {
+        let touch = event.allTouches().anyObject().locationInView(uiImageView);
+        
+        let xx = Int(touch.x / 3);
+        let yy = Int(touch.y / 3);
+   
+        for i in xx - 3 ..< xx + 3
+        {
+            for j in yy - 3 ..< yy + 3
+            {
+                let targetIndex = getIndex(i, j);
+                
+                if targetIndex > 0 && targetIndex < CELL_COUNT
+                {
+                    d[targetIndex] = 1;
+                }
+            }
+        }
+        
+    }
+    
     func dispatchSolve()
     {
         Async.background

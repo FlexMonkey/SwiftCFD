@@ -8,14 +8,14 @@
 
 import Foundation
 
-var ii : Int = 0;
+var frameNumber : Int = 0;
 
 let GRID_WIDTH = 200;
 let GRID_HEIGHT = 200;
 let DBL_GRID_HEIGHT = Double(GRID_HEIGHT);
 let CELL_COUNT = (GRID_WIDTH + 2) * (GRID_HEIGHT + 2);
 
-let dt = 0.25;
+let dt = 0.15;
 let visc = 0.0;
 let diff = 0.0;
 let linearSolverIterations = 2;
@@ -32,13 +32,16 @@ func fluidDynamicsStep() -> [Double]
 {
     let startTime : CFAbsoluteTime = CFAbsoluteTimeGetCurrent();
     
-    for i in 80 ..< 120
+    if frameNumber++ < 100
     {
-        for j in 195 ..< 200
+        for i in 50 ..< 150
         {
-            if (arc4random() % 100 > 90)
+            for j in 195 ..< 200
             {
-                d[getIndex(i, j)] = 1;
+                if (arc4random() % 100 > 90)
+                {
+                    d[getIndex(i, j)] = 1;
+                }
             }
         }
     }
@@ -203,7 +206,7 @@ func advect (b:Int, d0:[Double], du:[Double], dv:[Double]) -> [Double]
             
             var cellValue = s0 * (t0 * d0[getIndex(i0, j0)] + t1 * d0[getIndex(i0, j1)]) + s1 * (t0 * d0[getIndex(i1, j0)] + t1 * d0[getIndex(i1, j1)]);
             
-            d[getIndex(i, j)] = d[getIndex(i, j)] * 0.999;
+            //d[getIndex(i, j)] = d[getIndex(i, j)] * 0.999;
 
             returnArray[index] = cellValue;
         }
