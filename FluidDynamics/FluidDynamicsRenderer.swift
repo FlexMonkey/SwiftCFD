@@ -5,6 +5,9 @@
 //  Created by Simon Gladman on 30/08/2014.
 //  Copyright (c) 2014 Simon Gladman. All rights reserved.
 //
+//
+//  Based on work by Joseph Lord 
+//  http://blog.human-friendly.com/
 
 import Foundation
 import UIKit

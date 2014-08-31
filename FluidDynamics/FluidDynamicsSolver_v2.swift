@@ -5,6 +5,17 @@
 //  Created by Simon Gladman on 30/08/2014.
 //  Copyright (c) 2014 Simon Gladman. All rights reserved.
 //
+//  CFD Solver based on this AS3 implementation from Oaxoa
+//  http://blog.oaxoa.com/2008/01/21/actionscript-3-fluids-simulation/
+//
+//  Which is based on Jos Stam's paper, "Real Time Fluid Dynamics for Games"
+//  http://www.dgp.toronto.edu/people/stam/reality/Research/pdf/GDC03.pdf
+//
+//  Used by me many times
+//  http://flexmonkey.blogspot.co.uk/search/label/Computational%20Fluid%20Dynamics
+//
+//  Thanks to Joseph Lord for hints on optimsation
+//  http://blog.human-friendly.com/
 
 import Foundation
 
@@ -15,10 +26,10 @@ let GRID_HEIGHT = 200;
 let DBL_GRID_HEIGHT = Double(GRID_HEIGHT);
 let CELL_COUNT = (GRID_WIDTH + 2) * (GRID_HEIGHT + 2);
 
-let dt = 0.15;
+let dt = 0.1;
 let visc = 0.0;
 let diff = 0.0;
-let linearSolverIterations = 2;
+let linearSolverIterations = 3;
 
 var d = [Double](count: CELL_COUNT, repeatedValue: 0);
 var dOld = [Double](count: CELL_COUNT, repeatedValue: 0);
@@ -32,15 +43,28 @@ func fluidDynamicsStep() -> [Double]
 {
     let startTime : CFAbsoluteTime = CFAbsoluteTimeGetCurrent();
     
-    if frameNumber++ < 200
+    if frameNumber++ < 100
     {
-        for i in 50 ..< 150
+        for i in 90 ..< 110
         {
-            for j in 195 ..< 200
+            for j in 90 ..< 110
             {
-                if (arc4random() % 100 > 90)
+                let random = Int(arc4random() % 100);
+                
+                if random > frameNumber
                 {
-                    d[getIndex(i, j)] = 1;
+                    d[getIndex(i, j)] = d[getIndex(i, j)] + Double(arc4random() % 25) / 25;
+                    
+                    d[getIndex(i, j)] = d[getIndex(i, j)] > 1 ? 1 : d[getIndex(i, j)];
+                    
+                    let randomU = (Double((arc4random() % 100)) / 100) * ((arc4random() % 100) >= 50 ? -2.0 : 2.0);
+                    u[getIndex(i, j)] = randomU
+                    
+                    let randomV = (Double((arc4random() % 100)) / 100) * ((arc4random() % 100) >= 50 ? -2.0 : 2.0);
+                    v[getIndex(i, j)] = randomV
+                    
+                    let randomCurl = (Double((arc4random() % 100)) / 100) * ((arc4random() % 100) >= 50 ? -1.0 : 1.0);
+                    curl[getIndex(i, j)] = randomCurl
                 }
             }
         }

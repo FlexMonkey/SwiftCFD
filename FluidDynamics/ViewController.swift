@@ -27,6 +27,11 @@ class ViewController: UIViewController {
         dispatchSolve();
     }
 
+    @IBAction func buttonClick(sender: AnyObject)
+    {
+        frameNumber = 0;
+    }
+    
     var previousTouchX : Int?;
     var previousTouchY : Int?;
     
@@ -34,33 +39,34 @@ class ViewController: UIViewController {
     {
         let touch = event.allTouches().anyObject().locationInView(uiImageView);
         
-        let xx = Int(touch.x / 3);
-        let yy = Int(touch.y / 3);
+        let touchX = Int(touch.x / 3);
+        let touchY = Int(touch.y / 3);
    
-        for i in xx - 3 ..< xx + 3
+        for i in touchX - 3 ..< touchX + 3
         {
-            for j in yy - 3 ..< yy + 3
+            for j in touchY - 3 ..< touchY + 3
             {
                 let targetIndex = getIndex(i, j);
                 
                 if targetIndex > 0 && targetIndex < CELL_COUNT
                 {
-                    d[targetIndex] = 1;
+                    d[targetIndex] = 0.9;
                     
                     if let ptx = previousTouchX
                     {
                         if let pty = previousTouchY
                         {
-                            u[targetIndex] = u[targetIndex] + Double((xx - ptx) / 2)
-                            v[targetIndex] = v[targetIndex] + Double((yy - pty) / 2)
+                            u[targetIndex] = u[targetIndex] + Double((touchX - ptx) / 2)
+                            v[targetIndex] = v[targetIndex] + Double((touchY - pty) / 2)
                         }
                     }
                 }
             }
         }
         
-        previousTouchX = xx;
-        previousTouchY = yy;
+        
+        previousTouchX = touchX;
+        previousTouchY = touchY;
     }
     
     override func touchesEnded(touches: NSSet!, withEvent event: UIEvent!)
