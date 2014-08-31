@@ -50,20 +50,20 @@ func fluidDynamicsStep() -> [Double]
             for j in 90 ..< 110
             {
                 let random = Int(arc4random() % 100);
-                
+   
                 if random > frameNumber
                 {
                     d[getIndex(i, j)] = d[getIndex(i, j)] + Double(arc4random() % 25) / 25;
                     
                     d[getIndex(i, j)] = d[getIndex(i, j)] > 1 ? 1 : d[getIndex(i, j)];
                     
-                    let randomU = (Double((arc4random() % 100)) / 100) * ((arc4random() % 100) >= 50 ? -2.0 : 2.0);
+                    let randomU = (Double((arc4random() % 100)) / 100) * ((arc4random() % 100) >= 50 ? -4.0 : 4.0);
                     u[getIndex(i, j)] = randomU
                     
-                    let randomV = (Double((arc4random() % 100)) / 100) * ((arc4random() % 100) >= 50 ? -2.0 : 2.0);
+                    let randomV = (Double((arc4random() % 100)) / 100) * ((arc4random() % 100) >= 50 ? -4.0 : 4.5);
                     v[getIndex(i, j)] = randomV
                     
-                    let randomCurl = (Double((arc4random() % 100)) / 100) * ((arc4random() % 100) >= 50 ? -1.0 : 1.0);
+                    let randomCurl = (Double((arc4random() % 100)) / 100) * ((arc4random() % 100) >= 50 ? -4.0 : 4.0);
                     curl[getIndex(i, j)] = randomCurl
                 }
             }
