@@ -27,6 +27,9 @@ class ViewController: UIViewController {
         dispatchSolve();
     }
 
+    var previousTouchX : Int?;
+    var previousTouchY : Int?;
+    
     override func touchesMoved(touches: NSSet!, withEvent event: UIEvent!)
     {
         let touch = event.allTouches().anyObject().locationInView(uiImageView);
@@ -43,10 +46,27 @@ class ViewController: UIViewController {
                 if targetIndex > 0 && targetIndex < CELL_COUNT
                 {
                     d[targetIndex] = 1;
+                    
+                    if let ptx = previousTouchX
+                    {
+                        if let pty = previousTouchY
+                        {
+                            u[targetIndex] = u[targetIndex] + Double((xx - ptx) / 2)
+                            v[targetIndex] = v[targetIndex] + Double((yy - pty) / 2)
+                        }
+                    }
                 }
             }
         }
         
+        previousTouchX = xx;
+        previousTouchY = yy;
+    }
+    
+    override func touchesEnded(touches: NSSet!, withEvent event: UIEvent!)
+    {
+        previousTouchX = nil;
+        previousTouchY = nil;
     }
     
     func dispatchSolve()

@@ -32,7 +32,7 @@ func fluidDynamicsStep() -> [Double]
 {
     let startTime : CFAbsoluteTime = CFAbsoluteTimeGetCurrent();
     
-    if frameNumber++ < 100
+    if frameNumber++ < 200
     {
         for i in 50 ..< 150
         {
@@ -149,8 +149,13 @@ func advectUV()
             let t1 = y - Double(j0);
             let t0 = 1 - t1;
             
-            u[index] = s0 * (t0 * u[getIndex(i0, j0)] + t1 * uOld[getIndex(i0, j1)]) + s1 * (t0 * uOld[getIndex(i1, j0)] + t1 * uOld[getIndex(i1, j1)]);
-            v[index] = s0 * (t0 * v[getIndex(i0, j0)] + t1 * vOld[getIndex(i0, j1)]) + s1 * (t0 * vOld[getIndex(i1, j0)] + t1 * vOld[getIndex(i1, j1)]);
+            let i0j0 = i0 + GRID_WIDTH * j0;
+            let i0j1 = i0 + GRID_WIDTH * j1;
+            let i1j0 = i1 + GRID_WIDTH * j0;
+            let i1j1 = i1 + GRID_WIDTH * j1;
+            
+            u[index] = s0 * (t0 * u[i0j0] + t1 * uOld[i0j1]) + s1 * (t0 * uOld[i1j0] + t1 * uOld[i1j1]);
+            v[index] = s0 * (t0 * v[i0j0] + t1 * vOld[i0j1]) + s1 * (t0 * vOld[i1j0] + t1 * vOld[i1j1]);
         }
     }
 
@@ -203,8 +208,13 @@ func advect (b:Int, d0:[Double], du:[Double], dv:[Double]) -> [Double]
             let s0 = 1 - s1;
             let t1 = y - Double(j0);
             let t0 = 1 - t1;
+    
+            let i0j0 = i0 + GRID_WIDTH * j0;
+            let i0j1 = i0 + GRID_WIDTH * j1;
+            let i1j0 = i1 + GRID_WIDTH * j0;
+            let i1j1 = i1 + GRID_WIDTH * j1;
             
-            var cellValue = s0 * (t0 * d0[getIndex(i0, j0)] + t1 * d0[getIndex(i0, j1)]) + s1 * (t0 * d0[getIndex(i1, j0)] + t1 * d0[getIndex(i1, j1)]);
+            var cellValue = s0 * (t0 * d0[i0j0] + t1 * d0[i0j1]) + s1 * (t0 * d0[i1j0] + t1 * d0[i1j1]);
             
             //d[getIndex(i, j)] = d[getIndex(i, j)] * 0.999;
 
@@ -227,9 +237,15 @@ func project()
     {
         for var j = GRID_HEIGHT; j >= 1; j--
         {
-            div[getIndex(i, j)] = (u[getIndex(i+1, j)] - u[getIndex(i-1, j)] + v[getIndex(i, j+1)] - v[getIndex(i, j-1)]) * -0.5 / DBL_GRID_HEIGHT;
+            let index = getIndex(i, j);
+            let left = index - 1;
+            let right = index + 1;
+            let top = index - GRID_WIDTH;
+            let bottom = index + GRID_WIDTH;
             
-            p[getIndex(i, j)] = Double(0.0);
+            div[index] = (u[right] - u[left] + v[bottom] - v[top]) * -0.5 / DBL_GRID_HEIGHT;
+            
+            p[index] = Double(0.0);
         }
         
     }
@@ -243,8 +259,14 @@ func project()
     {
         for var j = GRID_HEIGHT; j >= 1; j--
         {
-            u[getIndex(i, j)] -= 0.5 * DBL_GRID_HEIGHT * (p[getIndex(i+1, j)] - p[getIndex(i-1, j)]);
-            v[getIndex(i, j)] -= 0.5 * DBL_GRID_HEIGHT * (p[getIndex(i, j+1)] - p[getIndex(i, j-1)]);
+            let index = getIndex(i, j);
+            let left = index - 1;
+            let right = index + 1;
+            let top = index - GRID_WIDTH;
+            let bottom = index + GRID_WIDTH;
+            
+            u[index] -= 0.5 * DBL_GRID_HEIGHT * (p[right] - p[left]);
+            v[index] -= 0.5 * DBL_GRID_HEIGHT * (p[bottom] - p[top]);
         }
     }
     
@@ -263,9 +285,15 @@ func diffuseUV()
         {
             for var j = GRID_HEIGHT; j >= 1; j--
             {
-                u[getIndex(i, j)] = (a * ( u[getIndex(i-1, j)] + u[getIndex(i+1, j)] + u[getIndex(i, j-1)] + u[getIndex(i, j+1)]) + uOld[getIndex(i, j)]) / c;
+                let index = getIndex(i, j);
+                let left = index - 1;
+                let right = index + 1;
+                let top = index - GRID_WIDTH;
+                let bottom = index + GRID_WIDTH;
                 
-                v[getIndex(i, j)] = (a * ( v[getIndex(i-1, j)] + v[getIndex(i+1, j)] + v[getIndex(i, j-1)] + v[getIndex(i, j+1)]) + vOld[getIndex(i, j)]) / c;
+                u[index] = (a * ( u[left] + u[right] + u[top] + u[bottom]) + uOld[index]) / c;
+                
+                v[index] = (a * ( v[left] + v[right] + v[top] + v[bottom]) + vOld[index]) / c;
             }
         }
     }
@@ -281,7 +309,13 @@ func linearSolver(b:Int, x:[Double], x0:[Double], a:Double, c:Double) -> [Double
         {
             for var j = GRID_HEIGHT; j >= 1; j--
             {
-                returnArray[getIndex(i, j)] = (a * ( x[getIndex(i-1, j)] + x[getIndex(i+1, j)] + x[getIndex(i, j-1)] + x[getIndex(i, j+1)]) + x0[getIndex(i, j)]) / c;
+                let index = getIndex(i, j);
+                let left = index - 1;
+                let right = index + 1;
+                let top = index - GRID_WIDTH;
+                let bottom = index + GRID_WIDTH;
+                
+                returnArray[index] = (a * ( x[left] + x[right] + x[top] + x[bottom]) + x0[index]) / c;
             }
         }
         returnArray = setBoundry(b, returnArray);
@@ -324,7 +358,9 @@ func buoyancy()
     {
         for var j = GRID_HEIGHT; j >= 1; j--
         {
-            vOld[getIndex(i, j)] = a * d[getIndex(i, j)] + -b * (d[getIndex(i, j)] - Tamb);
+            let index = getIndex(i, j);
+            
+            vOld[index] = a * d[index] + -b * (d[index] - Tamb);
         }
     }
 }
@@ -345,10 +381,15 @@ func vorticityConfinement()
     {
         for var j = 2; j < GRID_HEIGHT; j++
         {
+            let index = getIndex(i, j);
+            let left = index - 1;
+            let right = index + 1;
+            let top = index - GRID_WIDTH;
+            let bottom = index + GRID_WIDTH;
             
             // Find derivative of the magnitude (n = del |w|)
-            var dw_dx = (curl[getIndex(i + 1, j)] - curl[getIndex(i - 1, j)]) * 0.5;
-            var dw_dy = (curl[getIndex(i, j + 1)] - curl[getIndex(i, j - 1)]) * 0.5;
+            var dw_dx = (curl[right] - curl[left]) * 0.5;
+            var dw_dy = (curl[bottom] - curl[top]) * 0.5;
 
             let length = hypot(dw_dx, dw_dy) + 0.000001;
             
@@ -367,8 +408,14 @@ func vorticityConfinement()
 
 func curlf(i:Int, j:Int) -> Double
 {
-    var du_dy:Double = (u[getIndex(i, j + 1)] - u[getIndex(i, j - 1)]) * 0.5;
-    var dv_dx:Double = (v[getIndex(i + 1, j)] - v[getIndex(i - 1, j)]) * 0.5;
+    let index = getIndex(i, j);
+    let left = index - 1;
+    let right = index + 1;
+    let top = index - GRID_WIDTH;
+    let bottom = index + GRID_WIDTH;
+    
+    var du_dy:Double = (u[bottom] - u[top]) * 0.5;
+    var dv_dx:Double = (v[right] - v[left]) * 0.5;
     
     return du_dy - dv_dx;
 }
@@ -377,6 +424,9 @@ func setBoundry(b:Int, x:[Double]) -> [Double]
 {
     var returnArray = x;
     
+    return returnArray;
+    
+    /*
     for var i = GRID_HEIGHT; i >= 1; i--
     {
         if(b==1)
@@ -408,6 +458,7 @@ func setBoundry(b:Int, x:[Double]) -> [Double]
     returnArray[getIndex(GRID_HEIGHT+1, GRID_HEIGHT+1)] = 0.5 * (x[getIndex(GRID_HEIGHT, GRID_HEIGHT+1)] + x[getIndex(GRID_HEIGHT+1, GRID_HEIGHT)]);
     
     return returnArray;
+    */
 }
 
 func addSourceUV()
