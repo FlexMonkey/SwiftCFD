@@ -45,9 +45,7 @@ class ViewController: UIViewController {
             {
                 let scaledX = touchX / 3
                 let scaledY = touchY / 3
-                
-                previousTouchX = Int(scaledX);
-                previousTouchY = Int(scaledY);
+
                 
                 for var i = scaledX - 3; i < scaledX + 3; i++
                 {
@@ -63,16 +61,17 @@ class ViewController: UIViewController {
                             {
                                 if let pty = previousTouchY
                                 {
-                                    FluidDynamicsSolver_v2.u[targetIndex] = FluidDynamicsSolver_v2.u[targetIndex] + Double((Int(scaledX) - ptx) / 2)
-                                    FluidDynamicsSolver_v2.v[targetIndex] = FluidDynamicsSolver_v2.v[targetIndex] + Double((Int(scaledY) - pty) / 2)
+                                    FluidDynamicsSolver_v2.u[targetIndex] = FluidDynamicsSolver_v2.u[targetIndex] + Double((Int(scaledX) - ptx))
+                                    FluidDynamicsSolver_v2.v[targetIndex] = FluidDynamicsSolver_v2.v[targetIndex] + Double((Int(scaledY) - pty))
                                 }
                             }
                         }
                     }
                 }
+                previousTouchX = Int(scaledX);
+                previousTouchY = Int(scaledY);
             }
         }
-
     }
     
     override func touchesEnded(touches: NSSet, withEvent event: UIEvent)
