@@ -19,27 +19,30 @@
 
 import Foundation
 
-var frameNumber : Int = 0;
+struct FluidDynamicsSolver_v2
+{
 
-let GRID_WIDTH = 200;
-let GRID_HEIGHT = 200;
-let DBL_GRID_HEIGHT = Double(GRID_HEIGHT);
-let CELL_COUNT = (GRID_WIDTH + 2) * (GRID_HEIGHT + 2);
+static var frameNumber : Int = 0;
 
-let dt = 0.1;
-let visc = 0.0;
-let diff = 0.0;
-let linearSolverIterations = 3;
+static let GRID_WIDTH = 200;
+static let GRID_HEIGHT = 200;
+static let DBL_GRID_HEIGHT = Double(GRID_HEIGHT);
+static let CELL_COUNT = (GRID_WIDTH + 2) * (GRID_HEIGHT + 2);
 
-var d = [Double](count: CELL_COUNT, repeatedValue: 0);
-var dOld = [Double](count: CELL_COUNT, repeatedValue: 0);
-var u = [Double](count: CELL_COUNT, repeatedValue: 0);
-var uOld = [Double](count: CELL_COUNT, repeatedValue: 0);
-var v = [Double](count: CELL_COUNT, repeatedValue: 0);
-var vOld = [Double](count: CELL_COUNT, repeatedValue: 0);
-var curl = [Double](count: CELL_COUNT, repeatedValue: 0);
+static let dt = 0.1;
+static let visc = 0.0;
+static let diff = 0.0;
+static let linearSolverIterations = 2;
 
-func fluidDynamicsStep() -> [Double]
+static var d = [Double](count: CELL_COUNT, repeatedValue: 0);
+static var dOld = [Double](count: CELL_COUNT, repeatedValue: 0);
+static var u = [Double](count: CELL_COUNT, repeatedValue: 0);
+static var uOld = [Double](count: CELL_COUNT, repeatedValue: 0);
+static var v = [Double](count: CELL_COUNT, repeatedValue: 0);
+static var vOld = [Double](count: CELL_COUNT, repeatedValue: 0);
+static var curl = [Double](count: CELL_COUNT, repeatedValue: 0);
+
+static func fluidDynamicsStep() -> [Double]
 {
     let startTime : CFAbsoluteTime = CFAbsoluteTimeGetCurrent();
     
@@ -53,18 +56,18 @@ func fluidDynamicsStep() -> [Double]
    
                 if random > frameNumber
                 {
-                    d[getIndex(i, j)] = d[getIndex(i, j)] + Double(arc4random() % 25) / 25;
+                    d[ViewController.getIndex(i, j: j)] = d[ViewController.getIndex(i, j: j)] + Double(arc4random() % 25) / 25;
                     
-                    d[getIndex(i, j)] = d[getIndex(i, j)] > 1 ? 1 : d[getIndex(i, j)];
+                    d[ViewController.getIndex(i, j: j)] = d[ViewController.getIndex(i, j: j)] > 1 ? 1 : d[ViewController.getIndex(i, j: j)];
                     
                     let randomU = (Double((arc4random() % 100)) / 100) * ((arc4random() % 100) >= 50 ? -4.0 : 4.0);
-                    u[getIndex(i, j)] = randomU
+                    u[ViewController.getIndex(i, j: j)] = randomU
                     
                     let randomV = (Double((arc4random() % 100)) / 100) * ((arc4random() % 100) >= 50 ? -4.0 : 4.5);
-                    v[getIndex(i, j)] = randomV
+                    v[ViewController.getIndex(i, j: j)] = randomV
                     
                     let randomCurl = (Double((arc4random() % 100)) / 100) * ((arc4random() % 100) >= 50 ? -4.0 : 4.0);
-                    curl[getIndex(i, j)] = randomCurl
+                    curl[ViewController.getIndex(i, j: j)] = randomCurl
                 }
             }
         }
@@ -78,20 +81,20 @@ func fluidDynamicsStep() -> [Double]
     return d;
 }
 
-func densitySolver()
+static func densitySolver()
 {
-    d = addSource(d, dOld);
+    d = addSource(d, x0: dOld);
 
     swapD();
-    d = diffuse(0, d, dOld, diff);
+    d = diffuse(0, c: d, c0: dOld, diff: diff);
     swapD();
     
-    d = advect(0, dOld, u, v);
+    d = advect(0, d0: dOld, du: u, dv: v);
     
     dOld = [Double](count: CELL_COUNT, repeatedValue: 0);
 }
 
-func velocitySolver()
+static func velocitySolver()
 {
     //u = addSource(u, uOld);
     //v = addSource(v, vOld);
@@ -107,7 +110,7 @@ func velocitySolver()
     
     buoyancy();
     
-    v = addSource(v, vOld);
+    v = addSource(v, x0: vOld);
     
     swapU();
     swapV();
@@ -127,7 +130,7 @@ func velocitySolver()
     vOld = [Double](count: CELL_COUNT, repeatedValue: 0);
 }
 
-func advectUV()
+static func advectUV()
 {
     let dt0 = dt * DBL_GRID_HEIGHT;
     
@@ -138,7 +141,7 @@ func advectUV()
     {
         for var j = GRID_HEIGHT; j >= 1; j--
         {
-            let index = getIndex(i, j);
+            let index = ViewController.getIndex(i, j :j);
             
             var x = Double(i) - dt0x * uOld[index];
             var y = Double(j) - dt0y * vOld[index];
@@ -185,7 +188,7 @@ func advectUV()
 
 }
 
-func advect (b:Int, d0:[Double], du:[Double], dv:[Double]) -> [Double]
+static func advect (b:Int, d0:[Double], du:[Double], dv:[Double]) -> [Double]
 {
     var returnArray = [Double](count: CELL_COUNT, repeatedValue: 0.0)
 
@@ -198,7 +201,7 @@ func advect (b:Int, d0:[Double], du:[Double], dv:[Double]) -> [Double]
     {
         for var j = GRID_HEIGHT; j >= 1; j--
         {
-            let index = getIndex(i, j);
+            let index = ViewController.getIndex(i, j: j);
             
             var x = Double(i) - dt0x * du[index];
             var y = Double(j) - dt0y * dv[index];
@@ -246,13 +249,13 @@ func advect (b:Int, d0:[Double], du:[Double], dv:[Double]) -> [Double]
         }
     }
     
-    returnArray = setBoundry(b, returnArray);
+    returnArray = setBoundry(b, x: returnArray);
     
     return returnArray;
 }
 
 // project is always on u and v....
-func project()
+static func project()
 {
     var p = [Double](count: CELL_COUNT, repeatedValue: 0);
     var div = [Double](count: CELL_COUNT, repeatedValue: 0);
@@ -261,7 +264,7 @@ func project()
     {
         for var j = GRID_HEIGHT; j >= 1; j--
         {
-            let index = getIndex(i, j);
+            let index = ViewController.getIndex(i, j : j);
             let left = index - 1;
             let right = index + 1;
             let top = index - GRID_WIDTH;
@@ -274,16 +277,16 @@ func project()
         
     }
     
-    div = setBoundry(0, div);
-    p = setBoundry(0, p);
+    div = setBoundry(0, x: div);
+    p = setBoundry(0, x: p);
     
-    p = linearSolver(0, p, div, 1, 4);
+    p = linearSolver(0, x: p, x0: div, a: 1, c: 4);
     
     for var i = GRID_WIDTH; i >= 1; i--
     {
         for var j = GRID_HEIGHT; j >= 1; j--
         {
-            let index = getIndex(i, j);
+            let index = ViewController.getIndex(i, j : j);
             let left = index - 1;
             let right = index + 1;
             let top = index - GRID_WIDTH;
@@ -294,11 +297,11 @@ func project()
         }
     }
     
-    u = setBoundry(1, u);
-    v = setBoundry(2, v);
+    u = setBoundry(1, x: u);
+    v = setBoundry(2, x: v);
 }
 
-func diffuseUV()
+static  func diffuseUV()
 {
     let a:Double = dt * diff * Double(CELL_COUNT);
     let c:Double = 1 + 4 * a
@@ -309,7 +312,7 @@ func diffuseUV()
         {
             for var j = GRID_HEIGHT; j >= 1; j--
             {
-                let index = getIndex(i, j);
+                let index = ViewController.getIndex(i, j: j);
                 let left = index - 1;
                 let right = index + 1;
                 let top = index - GRID_WIDTH;
@@ -323,7 +326,7 @@ func diffuseUV()
     }
 }
 
-func linearSolver(b:Int, x:[Double], x0:[Double], a:Double, c:Double) -> [Double]
+static func linearSolver(b:Int, x:[Double], x0:[Double], a:Double, c:Double) -> [Double]
 {
     var returnArray = [Double](count: CELL_COUNT, repeatedValue: 0.0)
     
@@ -333,7 +336,7 @@ func linearSolver(b:Int, x:[Double], x0:[Double], a:Double, c:Double) -> [Double
         {
             for var j = GRID_HEIGHT; j >= 1; j--
             {
-                let index = getIndex(i, j);
+                let index = ViewController.getIndex(i, j: j);
                 let left = index - 1;
                 let right = index + 1;
                 let top = index - GRID_WIDTH;
@@ -342,23 +345,23 @@ func linearSolver(b:Int, x:[Double], x0:[Double], a:Double, c:Double) -> [Double
                 returnArray[index] = (a * ( x[left] + x[right] + x[top] + x[bottom]) + x0[index]) / c;
             }
         }
-        returnArray = setBoundry(b, returnArray);
+        returnArray = setBoundry(b, x: returnArray);
     }
     
     return returnArray;
 }
 
-func diffuse(b:Int, c:[Double], c0:[Double], diff:Double) -> [Double]
+static func diffuse(b:Int, c:[Double], c0:[Double], diff:Double) -> [Double]
 {
     let a:Double = dt * diff * Double(CELL_COUNT);
     
-    let returnArray = linearSolver(b, c, c0, a, 1 + 4 * a);
+    let returnArray = linearSolver(b, x: c, x0: c0, a: a, c: 1 + 4 * a);
     
     return returnArray
 }
 
 // buoyancy always on vOld...
-func buoyancy()
+static func buoyancy()
 {
     var Tamb:Double = 0;
     var a:Double = 0.000625 //0.000625;
@@ -370,7 +373,7 @@ func buoyancy()
     {
         for var j = 1; j <= GRID_HEIGHT; j++
         {
-            Tamb += d[getIndex(i, j)];
+            Tamb += d[ViewController.getIndex(i, j: j)];
         }
     }
     
@@ -382,7 +385,7 @@ func buoyancy()
     {
         for var j = GRID_HEIGHT; j >= 1; j--
         {
-            let index = getIndex(i, j);
+            let index = ViewController.getIndex(i, j: j);
             
             vOld[index] = a * d[index] + -b * (d[index] - Tamb);
         }
@@ -390,14 +393,14 @@ func buoyancy()
 }
 
 // always on vorticityConfinement(uOld, vOld);
-func vorticityConfinement()
+static func vorticityConfinement()
 {
     for var i = GRID_WIDTH; i >= 1; i--
     {
         for var j = GRID_HEIGHT; j >= 1; j--
         {
-            let tt=curlf(i, j)
-            curl[getIndex(i, j)] = tt<0 ? tt * -1:tt;
+            let tt=curlf(i, j: j)
+            curl[ViewController.getIndex(i, j: j)] = tt<0 ? tt * -1:tt;
         }
     }
     
@@ -405,7 +408,7 @@ func vorticityConfinement()
     {
         for var j = 2; j < GRID_HEIGHT; j++
         {
-            let index = getIndex(i, j);
+            let index = ViewController.getIndex(i, j: j);
             let left = index - 1;
             let right = index + 1;
             let top = index - GRID_WIDTH;
@@ -421,18 +424,18 @@ func vorticityConfinement()
             dw_dx /= length;
             dw_dy /= length;
             
-            var v = curlf(i, j);
+            var v = curlf(i, j: j);
             
             // N x w
-            uOld[getIndex(i, j)] = dw_dy * -v;
-            vOld[getIndex(i, j)] = dw_dx *  v;
+            uOld[ViewController.getIndex(i, j: j)] = dw_dy * -v;
+            vOld[ViewController.getIndex(i, j: j)] = dw_dx *  v;
         }
     }
 }
 
-func curlf(i:Int, j:Int) -> Double
+static func curlf(i:Int, j:Int) -> Double
 {
-    let index = getIndex(i, j);
+    let index = ViewController.getIndex(i, j: j);
     let left = index - 1;
     let right = index + 1;
     let top = index - GRID_WIDTH;
@@ -444,7 +447,7 @@ func curlf(i:Int, j:Int) -> Double
     return du_dy - dv_dx;
 }
 
-func setBoundry(b:Int, x:[Double]) -> [Double]
+static func setBoundry(b:Int, x:[Double]) -> [Double]
 {
     var returnArray = x;
     
@@ -485,7 +488,7 @@ func setBoundry(b:Int, x:[Double]) -> [Double]
     */
 }
 
-func addSourceUV()
+static func addSourceUV()
 {
     for var i = CELL_COUNT - 1; i >= 0; i--
     {
@@ -494,7 +497,7 @@ func addSourceUV()
     }
 }
 
-func addSource(x:[Double], x0:[Double]) -> [Double]
+static func addSource(x:[Double], x0:[Double]) -> [Double]
 {
     var returnArray = [Double](count: CELL_COUNT, repeatedValue: 0.0)
     
@@ -507,28 +510,25 @@ func addSource(x:[Double], x0:[Double]) -> [Double]
 }
 
 
-func swapD()
+static func swapD()
 {
     let tmp = d;
     d = dOld;
     dOld = tmp;
 }
 
-func swapU()
+static func swapU()
 {
     let tmp = u;
     u = uOld;
     uOld = tmp;
 }
 
-func swapV()
+static func swapV()
 {
     let tmp = v;
     v = vOld;
     vOld = tmp;
 }
-
-func getIndex(i : Int, j : Int) -> Int
-{
-    return i + (GRID_WIDTH) * j;
+    
 }

@@ -10,7 +10,7 @@ import UIKit
 
 class ViewController: UIViewController {
     
-    var densities : [Double] = [Double](count: CELL_COUNT, repeatedValue: 0);
+    var densities : [Double] = [Double](count: FluidDynamicsSolver_v2.CELL_COUNT, repeatedValue: 0);
     
     @IBOutlet var uiImageView: UIImageView!
     var uiImage : UIImage?;
@@ -29,47 +29,53 @@ class ViewController: UIViewController {
 
     @IBAction func buttonClick(sender: AnyObject)
     {
-        frameNumber = 0;
+        FluidDynamicsSolver_v2.frameNumber = 0;
     }
     
     var previousTouchX : Int?;
     var previousTouchY : Int?;
     
-    override func touchesMoved(touches: NSSet!, withEvent event: UIEvent!)
+    override func touchesMoved(touches: NSSet, withEvent event: UIEvent)
     {
-        let touch = event.allTouches().anyObject().locationInView(uiImageView);
-        
-        let touchX = Int(touch.x / 3);
-        let touchY = Int(touch.y / 3);
-   
-        for i in touchX - 3 ..< touchX + 3
+        let touch = event.allTouches()?.anyObject()?.locationInView(uiImageView)
+     
+        if let touchX = touch?.x
         {
-            for j in touchY - 3 ..< touchY + 3
+            if let touchY = touch?.y
             {
-                let targetIndex = getIndex(i, j);
+                let scaledX = touchX / 3
+                let scaledY = touchY / 3
                 
-                if targetIndex > 0 && targetIndex < CELL_COUNT
+                previousTouchX = Int(scaledX);
+                previousTouchY = Int(scaledY);
+                
+                for var i = scaledX - 3; i < scaledX + 3; i++
                 {
-                    d[targetIndex] = 0.9;
-                    
-                    if let ptx = previousTouchX
+                    for var j = scaledY - 3; j < scaledY + 3; j++
                     {
-                        if let pty = previousTouchY
+                        let targetIndex = ViewController.getIndex(Int(i), j: Int(j));
+                        
+                        if targetIndex > 0 && targetIndex < FluidDynamicsSolver_v2.CELL_COUNT
                         {
-                            u[targetIndex] = u[targetIndex] + Double((touchX - ptx) / 2)
-                            v[targetIndex] = v[targetIndex] + Double((touchY - pty) / 2)
+                            FluidDynamicsSolver_v2.d[targetIndex] = 0.9;
+                            
+                            if let ptx = previousTouchX
+                            {
+                                if let pty = previousTouchY
+                                {
+                                    FluidDynamicsSolver_v2.u[targetIndex] = FluidDynamicsSolver_v2.u[targetIndex] + Double((Int(scaledX) - ptx) / 2)
+                                    FluidDynamicsSolver_v2.v[targetIndex] = FluidDynamicsSolver_v2.v[targetIndex] + Double((Int(scaledY) - pty) / 2)
+                                }
+                            }
                         }
                     }
                 }
             }
         }
-        
-        
-        previousTouchX = touchX;
-        previousTouchY = touchY;
+
     }
     
-    override func touchesEnded(touches: NSSet!, withEvent event: UIEvent!)
+    override func touchesEnded(touches: NSSet, withEvent event: UIEvent)
     {
         previousTouchX = nil;
         previousTouchY = nil;
@@ -79,7 +85,7 @@ class ViewController: UIViewController {
     {
         Async.background
         {
-            self.densities = fluidDynamicsStep()
+            self.densities = FluidDynamicsSolver_v2.fluidDynamicsStep()
         }
         .main
         {
@@ -101,5 +107,10 @@ class ViewController: UIViewController {
         }
     }
 
+    class func getIndex(i : Int, j : Int) -> Int
+    {
+        return i + (FluidDynamicsSolver_v2.GRID_WIDTH) * j;
+    }
+    
 }
 
