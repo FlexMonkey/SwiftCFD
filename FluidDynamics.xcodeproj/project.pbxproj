@@ -13,7 +13,7 @@
 		3ECF1A3319AD136F00E1C992 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3ECF1A3219AD136F00E1C992 /* Images.xcassets */; };
 		3ECF1A3F19AD136F00E1C992 /* FluidDynamicsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ECF1A3E19AD136F00E1C992 /* FluidDynamicsTests.swift */; };
 		3ECF1A4C19AE482400E1C992 /* FluidDynamicsCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ECF1A4B19AE482400E1C992 /* FluidDynamicsCell.swift */; };
-		BE95E98719B1A0E400A4884C /* Async.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE95E98619B1A0E400A4884C /* Async.swift */; };
+		BE6C58EC19BDDF2E007C6EE8 /* AsyncLegacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE6C58EB19BDDF2E007C6EE8 /* AsyncLegacy.swift */; };
 		BEEBBC5B19B1A31600F847A0 /* FluidDynamicsRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEEBBC5A19B1A31600F847A0 /* FluidDynamicsRenderer.swift */; };
 		BEEBBC5D19B1AEA400F847A0 /* FluidDynamicsSolver_v2.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEEBBC5C19B1AEA400F847A0 /* FluidDynamicsSolver_v2.swift */; };
 /* End PBXBuildFile section */
@@ -39,7 +39,7 @@
 		3ECF1A3D19AD136F00E1C992 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3ECF1A3E19AD136F00E1C992 /* FluidDynamicsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluidDynamicsTests.swift; sourceTree = "<group>"; };
 		3ECF1A4B19AE482400E1C992 /* FluidDynamicsCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FluidDynamicsCell.swift; sourceTree = "<group>"; };
-		BE95E98619B1A0E400A4884C /* Async.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Async.swift; sourceTree = "<group>"; };
+		BE6C58EB19BDDF2E007C6EE8 /* AsyncLegacy.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AsyncLegacy.swift; sourceTree = "<group>"; };
 		BEEBBC5A19B1A31600F847A0 /* FluidDynamicsRenderer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FluidDynamicsRenderer.swift; sourceTree = "<group>"; };
 		BEEBBC5C19B1AEA400F847A0 /* FluidDynamicsSolver_v2.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FluidDynamicsSolver_v2.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -132,7 +132,7 @@
 		BE95E98519B1A0C700A4884C /* async */ = {
 			isa = PBXGroup;
 			children = (
-				BE95E98619B1A0E400A4884C /* Async.swift */,
+				BE6C58EB19BDDF2E007C6EE8 /* AsyncLegacy.swift */,
 			);
 			name = async;
 			sourceTree = "<group>";
@@ -237,11 +237,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				3ECF1A2E19AD136F00E1C992 /* ViewController.swift in Sources */,
+				BE6C58EC19BDDF2E007C6EE8 /* AsyncLegacy.swift in Sources */,
 				BEEBBC5D19B1AEA400F847A0 /* FluidDynamicsSolver_v2.swift in Sources */,
 				BEEBBC5B19B1A31600F847A0 /* FluidDynamicsRenderer.swift in Sources */,
 				3ECF1A2C19AD136F00E1C992 /* AppDelegate.swift in Sources */,
 				3ECF1A4C19AE482400E1C992 /* FluidDynamicsCell.swift in Sources */,
-				BE95E98719B1A0E400A4884C /* Async.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
