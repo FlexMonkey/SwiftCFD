@@ -49,9 +49,9 @@ static func fluidDynamicsStep() -> [Double]
 
     if frameNumber++ < 100
     {
-        for j in 90 ..< 110
+        for j in (GRID_HEIGHT * 9)/20 ..< (GRID_HEIGHT * 11)/20
         {
-            for i in 90 ..< 110
+            for i in (GRID_WIDTH * 9)/20 ..< (GRID_WIDTH * 11)/20
             {
                 let random = Int(arc4random_uniform(100));
    
@@ -364,9 +364,11 @@ static func buoyancy()
     Tamb /= Double(CELL_COUNT);
     
     // for each cell compute buoyancy force
-    for var i = GRID_WIDTH; i >= 1; i--
+    //for var i = GRID_WIDTH; i >= 1; i--
+    for j in 0..<GRID_WIDTH
     {
-        for var j = GRID_HEIGHT; j >= 1; j--
+        //        for var j = GRID_HEIGHT; j >= 1; j--
+        for i in 0..<GRID_HEIGHT
         {
             let index = getIndex(i, j: j);
             
@@ -389,15 +391,17 @@ static func vorticityConfinement()
         }
     }
     
-    for var i = 2; i < GRID_WIDTH; i++
+    //for var i = 2; i < GRID_WIDTH; i++
+    for j in 0..<GRID_HEIGHT
     {
-        for var j = 2; j < GRID_HEIGHT; j++
+        //for var j = 2; j < GRID_HEIGHT; j++
+        for i in 0..<GRID_WIDTH
         {
             let index = getIndex(i, j: j);
             let left = index - 1;
             let right = index + 1;
-            let top = index - GRID_WIDTH;
-            let bottom = index + GRID_WIDTH;
+            let top = index - LINE_STRIDE;
+            let bottom = index + LINE_STRIDE;
             
             // Find derivative of the magnitude (n = del |w|)
             var dw_dx = (curl[right] - curl[left]) * 0.5;
