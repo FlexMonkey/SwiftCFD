@@ -133,8 +133,8 @@ func advectUV(#uOld:[Double], #vOld:[Double], #u: [Double], #v: [Double])->(u: [
     let dt0x = dt * DBL_GRID_HEIGHT;
     let dt0y = dt * DBL_GRID_HEIGHT;
     
-    var uOut = u
-    var vOut = v
+    var uOut = [Double](count: CELL_COUNT, repeatedValue: 0);
+    var vOut = [Double](count: CELL_COUNT, repeatedValue: 0);
     
     //for var i = GRID_HEIGHT; i >= 1; i--
     for j in 0..<GRID_HEIGHT
