@@ -26,6 +26,7 @@ static var frameNumber : Int = 0;
 
 static let GRID_WIDTH = 200;
 static let GRID_HEIGHT = 200;
+static let LINE_STRIDE = GRID_HEIGHT + 2
 static let DBL_GRID_HEIGHT = Double(GRID_HEIGHT);
 static let CELL_COUNT = (GRID_WIDTH + 2) * (GRID_HEIGHT + 2);
 
@@ -48,26 +49,26 @@ static func fluidDynamicsStep() -> [Double]
 
     if frameNumber++ < 100
     {
-        for i in 90 ..< 110
+        for j in 90 ..< 110
         {
-            for j in 90 ..< 110
+            for i in 90 ..< 110
             {
                 let random = Int(arc4random_uniform(100));
    
                 if random > frameNumber
                 {
-                    d[ViewController.getIndex(i, j: j)] = d[ViewController.getIndex(i, j: j)] + Double(arc4random_uniform(25)) / 25;
+                    d[getIndex(i, j: j)] = d[getIndex(i, j: j)] + Double(arc4random_uniform(25)) / 25;
                     
-                    d[ViewController.getIndex(i, j: j)] = d[ViewController.getIndex(i, j: j)] > 1 ? 1 : d[ViewController.getIndex(i, j: j)];
+                    d[getIndex(i, j: j)] = d[getIndex(i, j: j)] > 1 ? 1 : d[getIndex(i, j: j)];
                     
                     let randomU = (Double(arc4random_uniform(100)) / 100) * (arc4random_uniform(100) >= 50 ? -4.0 : 4.0);
-                    u[ViewController.getIndex(i, j: j)] = randomU
+                    u[getIndex(i, j: j)] = randomU
                     
                     let randomV = (Double(arc4random_uniform(100)) / 100) * (arc4random_uniform(100) >= 50 ? -4.0 : 4.5);
-                    v[ViewController.getIndex(i, j: j)] = randomV
+                    v[getIndex(i, j: j)] = randomV
                     
                     let randomCurl = (Double(arc4random_uniform(100)) / 100) * (arc4random_uniform(100) >= 50 ? -4.0 : 4.0);
-                    curl[ViewController.getIndex(i, j: j)] = randomCurl
+                    curl[getIndex(i, j: j)] = randomCurl
                 }
             }
         }
@@ -136,35 +137,21 @@ static func advectUV()
     let dt0y = dt * DBL_GRID_HEIGHT;
     
     //for var i = GRID_HEIGHT; i >= 1; i--
-    for i in 1...GRID_HEIGHT
+    for j in 0..<GRID_HEIGHT
     {
         //for var j = GRID_HEIGHT; j >= 1; j--
-        for j in 1...GRID_HEIGHT
+        for i in 0..<GRID_HEIGHT
         {
-            //let index = ViewController.getIndex(i, j :j);
-            let index = GRID_WIDTH * j + i
+            let index = getIndex(i, j :j);
+            //let index = GRID_WIDTH * j + i
             
             var x = Double(i) - dt0x * uOld[index];
             var y = Double(j) - dt0y * vOld[index];
             
-            if (x > DBL_GRID_HEIGHT + 0.5)
-            {
-                x = DBL_GRID_HEIGHT + 0.5;
-            }
-            if (x < 0.5)
-            {
-                x = 0.5;
-            }
-            
-            if (y > DBL_GRID_HEIGHT + 0.5)
-            {
-                y = DBL_GRID_HEIGHT + 0.5;
-            }
-            
-            if (y < 0.5)
-            {
-                y = 0.5;
-            }
+            x = min(x, DBL_GRID_HEIGHT + 0.5)
+            x = max(x, 0.5)
+            y = min(y, DBL_GRID_HEIGHT + 0.5)
+            y = max(y, 0.5)
             
             let i0 = Int(x);
             let i1 = i0 + 1.0;
@@ -177,10 +164,10 @@ static func advectUV()
             let t1 = y - Double(j0);
             let t0 = 1 - t1;
             
-            let i0j0 = i0 + GRID_WIDTH * j0;
-            let i0j1 = i0 + GRID_WIDTH * j1;
-            let i1j0 = i1 + GRID_WIDTH * j0;
-            let i1j1 = i1 + GRID_WIDTH * j1;
+            let i0j0 = i0 + LINE_STRIDE * j0;
+            let i0j1 = i0 + LINE_STRIDE * j1;
+            let i1j0 = i1 + LINE_STRIDE * j0;
+            let i1j1 = i1 + LINE_STRIDE * j1;
             
             u[index] = s0 * (t0 * u[i0j0] + t1 * uOld[i0j1]) + s1 * (t0 * uOld[i1j0] + t1 * uOld[i1j1]);
             v[index] = s0 * (t0 * v[i0j0] + t1 * vOld[i0j1]) + s1 * (t0 * vOld[i1j0] + t1 * vOld[i1j1]);
@@ -198,33 +185,21 @@ static func advect (b:Int, d0:[Double], du:[Double], dv:[Double]) -> [Double]
     let dt0x = dt * DBL_GRID_HEIGHT;
     let dt0y = dt * DBL_GRID_HEIGHT;
 
-    for var i = GRID_HEIGHT; i >= 1; i--
+    //for var i = GRID_HEIGHT; i >= 1; i--
+    for j in 0..<GRID_HEIGHT
     {
-        for var j = GRID_HEIGHT; j >= 1; j--
+        //        for var j = GRID_HEIGHT; j >= 1; j--
+        for i in 0..<GRID_WIDTH
         {
-            let index = ViewController.getIndex(i, j: j);
+            let index = getIndex(i, j: j);
             
             var x = Double(i) - dt0x * du[index];
             var y = Double(j) - dt0y * dv[index];
         
-            if (x > DBL_GRID_HEIGHT + 0.5)
-            {
-                x = DBL_GRID_HEIGHT + 0.5;
-            }
-            if (x < 0.5)
-            {
-                x = 0.5;
-            }
-   
-            if (y > DBL_GRID_HEIGHT + 0.5)
-            {
-                y = DBL_GRID_HEIGHT + 0.5;
-            }
-            
-            if (y < 0.5)
-            {
-                y = 0.5;
-            }
+            x = min(x, DBL_GRID_HEIGHT + 0.5)
+            x = max(x, 0.5)
+            y = min(y, DBL_GRID_HEIGHT + 0.5)
+            y = max(y, 0.5)
             
             let i0 = Int(x);
             let i1 = i0 + 1.0;
@@ -237,10 +212,10 @@ static func advect (b:Int, d0:[Double], du:[Double], dv:[Double]) -> [Double]
             let t1 = y - Double(j0);
             let t0 = 1 - t1;
     
-            let i0j0 = i0 + GRID_WIDTH * j0;
-            let i0j1 = i0 + GRID_WIDTH * j1;
-            let i1j0 = i1 + GRID_WIDTH * j0;
-            let i1j1 = i1 + GRID_WIDTH * j1;
+            let i0j0 = i0 + LINE_STRIDE * j0;
+            let i0j1 = i0 + LINE_STRIDE * j1;
+            let i1j0 = i1 + LINE_STRIDE * j0;
+            let i1j1 = i1 + LINE_STRIDE * j1;
             
             var cellValue = s0 * (t0 * d0[i0j0] + t1 * d0[i0j1]) + s1 * (t0 * d0[i1j0] + t1 * d0[i1j1]);
             
@@ -261,11 +236,11 @@ static func project()
     var p = [Double](count: CELL_COUNT, repeatedValue: 0);
     var div = [Double](count: CELL_COUNT, repeatedValue: 0);
     
-    for var i = GRID_HEIGHT; i >= 1; i--
+    for var j = GRID_HEIGHT; j >= 1; j--
     {
-        for var j = GRID_HEIGHT; j >= 1; j--
+        for var i = GRID_WIDTH; i >= 1; i--
         {
-            let index = ViewController.getIndex(i, j : j);
+            let index = getIndex(i, j : j);
             let left = index - 1;
             let right = index + 1;
             let top = index - GRID_WIDTH;
@@ -283,15 +258,17 @@ static func project()
     
     p = linearSolver(0, x: p, x0: div, a: 1, c: 4);
     
-    for var i = GRID_WIDTH; i >= 1; i--
+    for var j = GRID_HEIGHT; j >= 1; j--
+    //for j in 0..<GRID_HEIGHT
     {
-        for var j = GRID_HEIGHT; j >= 1; j--
+                for var i = GRID_WIDTH; i >= 1; i--
+                    //for i in 0..<GRID_WIDTH
         {
-            let index = ViewController.getIndex(i, j : j);
+            let index = getIndex(i, j : j);
             let left = index - 1;
             let right = index + 1;
-            let top = index - GRID_WIDTH;
-            let bottom = index + GRID_WIDTH;
+            let top = index - LINE_STRIDE;
+            let bottom = index + LINE_STRIDE;
             
             u[index] -= 0.5 * DBL_GRID_HEIGHT * (p[right] - p[left]);
             v[index] -= 0.5 * DBL_GRID_HEIGHT * (p[bottom] - p[top]);
@@ -313,7 +290,7 @@ static  func diffuseUV()
         {
             for var j = GRID_HEIGHT; j >= 1; j--
             {
-                let index = ViewController.getIndex(i, j: j);
+                let index = getIndex(i, j: j);
                 let left = index - 1;
                 let right = index + 1;
                 let top = index - GRID_WIDTH;
@@ -337,7 +314,7 @@ static func linearSolver(b:Int, x:[Double], x0:[Double], a:Double, c:Double) -> 
         {
             for var j = GRID_HEIGHT; j >= 1; j--
             {
-                let index = ViewController.getIndex(i, j: j);
+                let index = getIndex(i, j: j);
                 let left = index - 1;
                 let right = index + 1;
                 let top = index - GRID_WIDTH;
@@ -374,7 +351,7 @@ static func buoyancy()
     {
         for var j = 1; j <= GRID_HEIGHT; j++
         {
-            Tamb += d[ViewController.getIndex(i, j: j)];
+            Tamb += d[getIndex(i, j: j)];
         }
     }
     
@@ -386,7 +363,7 @@ static func buoyancy()
     {
         for var j = GRID_HEIGHT; j >= 1; j--
         {
-            let index = ViewController.getIndex(i, j: j);
+            let index = getIndex(i, j: j);
             
             vOld[index] = a * d[index] + -b * (d[index] - Tamb);
         }
@@ -401,7 +378,7 @@ static func vorticityConfinement()
         for var j = GRID_HEIGHT; j >= 1; j--
         {
             let tt=curlf(i, j: j)
-            curl[ViewController.getIndex(i, j: j)] = tt<0 ? tt * -1:tt;
+            curl[getIndex(i, j: j)] = tt<0 ? tt * -1:tt;
         }
     }
     
@@ -409,7 +386,7 @@ static func vorticityConfinement()
     {
         for var j = 2; j < GRID_HEIGHT; j++
         {
-            let index = ViewController.getIndex(i, j: j);
+            let index = getIndex(i, j: j);
             let left = index - 1;
             let right = index + 1;
             let top = index - GRID_WIDTH;
@@ -428,15 +405,15 @@ static func vorticityConfinement()
             var v = curlf(i, j: j);
             
             // N x w
-            uOld[ViewController.getIndex(i, j: j)] = dw_dy * -v;
-            vOld[ViewController.getIndex(i, j: j)] = dw_dx *  v;
+            uOld[getIndex(i, j: j)] = dw_dy * -v;
+            vOld[getIndex(i, j: j)] = dw_dx *  v;
         }
     }
 }
 
 static func curlf(i:Int, j:Int) -> Double
 {
-    let index = ViewController.getIndex(i, j: j);
+    let index = getIndex(i, j: j);
     let left = index - 1;
     let right = index + 1;
     let top = index - GRID_WIDTH;

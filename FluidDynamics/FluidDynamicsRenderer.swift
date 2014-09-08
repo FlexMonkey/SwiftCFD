@@ -32,13 +32,17 @@ func renderFluidDynamics(densities : [Double]) -> UIImage
 {
     var pixelArray = [PixelData](count: densities.count, repeatedValue: PixelData(a: 255, r:0, g: 0, b: 0));
  
-    for var i = 0; i < FluidDynamicsSolver_v2.CELL_COUNT; i++
+    //for var i = 0; i < FluidDynamicsSolver_v2.CELL_COUNT; i++
+    for j in 0..<FluidDynamicsSolver_v2.GRID_HEIGHT {
+    for i in 0..<FluidDynamicsSolver_v2.GRID_WIDTH
     {
-        let pixelValue = UInt8(255 * densities[i]);
+        let index = ViewController.getIndex(i, j: j)
+        let pixelValue = UInt8(255 * densities[index]);
         
-        pixelArray[i].r = pixelValue;
-        pixelArray[i].g = pixelValue;
-        pixelArray[i].b = pixelValue;
+        pixelArray[index].r = pixelValue;
+        pixelArray[index].g = pixelValue;
+        pixelArray[index].b = pixelValue;
+    }
     }
     
     let outputImage = imageFromARGB32Bitmap(pixelArray, UInt(FluidDynamicsSolver_v2.GRID_WIDTH), UInt(FluidDynamicsSolver_v2.GRID_HEIGHT))
