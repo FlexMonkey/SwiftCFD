@@ -23,6 +23,7 @@ let GRID_WIDTH = 200;
 let GRID_HEIGHT = 200;
 let LINE_STRIDE = GRID_HEIGHT + 2
 let DBL_GRID_HEIGHT = Double(GRID_HEIGHT);
+let DBL_GRID_WIDTH = Double(GRID_WIDTH);
 let CELL_COUNT = (GRID_WIDTH + 2) * (GRID_HEIGHT + 2);
 
 let dt = 0.1;
@@ -130,7 +131,7 @@ func velocitySolver(#d:[Double], #u: [Double], #v: [Double], #curl:[Double])->(u
 
 func advectUV(#uOld:[Double], #vOld:[Double], #u: [Double], #v: [Double])->(u: [Double], v: [Double])
 {
-    let dt0x = dt * DBL_GRID_HEIGHT;
+    let dt0x = dt * DBL_GRID_WIDTH;
     let dt0y = dt * DBL_GRID_HEIGHT;
     
     var uOut = [Double](count: CELL_COUNT, repeatedValue: 0);
@@ -179,10 +180,8 @@ func advectUV(#uOld:[Double], #vOld:[Double], #u: [Double], #v: [Double])->(u: [
 func advect (b:Int, #d0:[Double], #du:[Double], #dv:[Double]) -> [Double]
 {
     var returnArray = [Double](count: CELL_COUNT, repeatedValue: 0.0)
-
-    let dt0 = dt * DBL_GRID_HEIGHT;
     
-    let dt0x = dt * DBL_GRID_HEIGHT;
+    let dt0x = dt * DBL_GRID_WIDTH;
     let dt0y = dt * DBL_GRID_HEIGHT;
 
     //for var i = GRID_HEIGHT; i >= 1; i--
