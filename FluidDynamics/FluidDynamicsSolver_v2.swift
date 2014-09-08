@@ -105,14 +105,14 @@ static func velocitySolver()
     
     addSourceUV(uOld, vOld, &u, &v);
     
-    vorticityConfinement();
+    vorticityConfinement(u: u, v: v, curl: &curl, uOld: &uOld, vOld: &vOld);
     
     // u = addSource(u, uOld);
     // v = addSource(v, vOld);
     
     addSourceUV(uOld, vOld, &u, &v);
     
-    buoyancy();
+    buoyancy(d, &vOld);
     
     v = addSource(v, x0: vOld);
     
@@ -319,42 +319,10 @@ static func diffuse(b:Int, c:[Double], c0:[Double], diff:Double) -> [Double]
     return returnArray
 }
 
-// buoyancy always on vOld...
-static func buoyancy()
-{
-    var Tamb:Double = 0;
-    var a:Double = 0.000625 //0.000625;
-    var b:Double = 0.025 //0.025;
-
-    
-    // sum all temperatures
-    for var i = 1; i <= GRID_WIDTH; i++
-    {
-        for var j = 1; j <= GRID_HEIGHT; j++
-        {
-            Tamb += d[getIndex(i, j: j)];
-        }
-    }
-    
-    // get average temperature
-    Tamb /= Double(CELL_COUNT);
-    
-    // for each cell compute buoyancy force
-    //for var i = GRID_WIDTH; i >= 1; i--
-    for j in 0..<GRID_WIDTH
-    {
-        //        for var j = GRID_HEIGHT; j >= 1; j--
-        for i in 0..<GRID_HEIGHT
-        {
-            let index = getIndex(i, j: j);
-            
-            vOld[index] = a * d[index] + -b * (d[index] - Tamb);
-        }
-    }
 }
 
 // always on vorticityConfinement(uOld, vOld);
-static func vorticityConfinement()
+func vorticityConfinement(#u:[Double], #v:[Double], inout #curl:[Double], inout #uOld:[Double], inout #vOld:[Double])
 {
     //for var i = GRID_WIDTH; i >= 1; i--
     for j in 0..<GRID_HEIGHT
@@ -419,8 +387,43 @@ static func swapV()
     v = vOld;
     vOld = tmp;
 }
-*/
+
 }
+*/
+// buoyancy always on vOld...
+func buoyancy(d:[Double], inout vOld:[Double])
+{
+    var Tamb:Double = 0;
+    var a:Double = 0.000625 //0.000625;
+    var b:Double = 0.025 //0.025;
+    
+    
+    // sum all temperatures
+    for var i = 1; i <= GRID_WIDTH; i++
+    {
+        for var j = 1; j <= GRID_HEIGHT; j++
+        {
+            Tamb += d[getIndex(i, j: j)];
+        }
+    }
+    
+    // get average temperature
+    Tamb /= Double(CELL_COUNT);
+    
+    // for each cell compute buoyancy force
+    //for var i = GRID_WIDTH; i >= 1; i--
+    for j in 0..<GRID_WIDTH
+    {
+        //        for var j = GRID_HEIGHT; j >= 1; j--
+        for i in 0..<GRID_HEIGHT
+        {
+            let index = getIndex(i, j: j);
+            
+            vOld[index] = a * d[index] + -b * (d[index] - Tamb);
+        }
+    }
+}
+
 
 // This costs 2 full array copies!!!
 func swap(inout a:[Double], inout b:[Double]) {
