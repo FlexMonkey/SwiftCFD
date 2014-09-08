@@ -41,9 +41,9 @@ static var frameNumber : Int = 0;
 static var d = [Double](count: CELL_COUNT, repeatedValue: 0);
 static var dOld = [Double](count: CELL_COUNT, repeatedValue: 0);
 static var u = [Double](count: CELL_COUNT, repeatedValue: 0);
-static var uOld = [Double](count: CELL_COUNT, repeatedValue: 0);
+    //static var uOld = [Double](count: CELL_COUNT, repeatedValue: 0);
 static var v = [Double](count: CELL_COUNT, repeatedValue: 0);
-static var vOld = [Double](count: CELL_COUNT, repeatedValue: 0);
+    //static var vOld = [Double](count: CELL_COUNT, repeatedValue: 0);
 static var curl = [Double](count: CELL_COUNT, repeatedValue: 0);
 
 static func fluidDynamicsStep() -> [Double]
@@ -77,7 +77,7 @@ static func fluidDynamicsStep() -> [Double]
         }
     }
 
-    velocitySolver(d: d, uOld: &uOld, vOld: &vOld, u: &u, v: &v, curl: &curl)
+    velocitySolver(d: d, u: &u, v: &v, curl: &curl)
     densitySolver(u: u, v: v, d: &d, dOld: &dOld);
     
     println("CFD SOLVE:" + NSString(format: "%.4f", CFAbsoluteTimeGetCurrent() - startTime));
@@ -98,11 +98,12 @@ func densitySolver(#u: [Double], #v: [Double], inout #d:[Double], inout #dOld: [
     dOld = [Double](count: CELL_COUNT, repeatedValue: 0);
 }
 
-func velocitySolver(#d:[Double], inout #uOld:[Double], inout #vOld:[Double], inout #u: [Double], inout #v: [Double], inout #curl:[Double])
+func velocitySolver(#d:[Double], inout #u: [Double], inout #v: [Double], inout #curl:[Double])
 {
     //u = addSource(u, uOld);
     //v = addSource(v, vOld);
-    
+    var uOld = [Double](count: CELL_COUNT, repeatedValue: 0);
+    var vOld = [Double](count: CELL_COUNT, repeatedValue: 0);
     
     addSourceUV(uOld, vOld, &u, &v);
     
@@ -131,8 +132,7 @@ func velocitySolver(#d:[Double], inout #uOld:[Double], inout #vOld:[Double], ino
     
     project(u: &u, v: &v);
     
-    uOld = [Double](count: CELL_COUNT, repeatedValue: 0);
-    vOld = [Double](count: CELL_COUNT, repeatedValue: 0);
+    
 }
 
 func advectUV(#uOld:[Double], #vOld:[Double], inout #u: [Double], inout #v: [Double])
