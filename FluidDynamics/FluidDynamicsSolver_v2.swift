@@ -39,7 +39,7 @@ static var frameNumber : Int = 0;
 
 
 static var d = [Double](count: CELL_COUNT, repeatedValue: 0);
-static var dOld = [Double](count: CELL_COUNT, repeatedValue: 0);
+// static var dOld = [Double](count: CELL_COUNT, repeatedValue: 0);
 static var u = [Double](count: CELL_COUNT, repeatedValue: 0);
     //static var uOld = [Double](count: CELL_COUNT, repeatedValue: 0);
 static var v = [Double](count: CELL_COUNT, repeatedValue: 0);
@@ -79,7 +79,7 @@ static func fluidDynamicsStep() -> [Double]
     let velStartTime : CFAbsoluteTime = CFAbsoluteTimeGetCurrent();
     (u, v, curl) = velocitySolver(d: d, u: u, v: v, curl: curl)
     let velStopTime = CFAbsoluteTimeGetCurrent()
-    densitySolver(u: u, v: v, d: &d, dOld: &dOld);
+    densitySolver(u: u, v: v, d: &d);
     let densityStopTime = CFAbsoluteTimeGetCurrent()
     
     println("CFD SOLVE:" + NSString(format: "%.4f", CFAbsoluteTimeGetCurrent() - startTime));
@@ -88,8 +88,10 @@ static func fluidDynamicsStep() -> [Double]
     return d;
 }
 }
-func densitySolver(#u: [Double], #v: [Double], inout #d:[Double], inout #dOld: [Double])
+func densitySolver(#u: [Double], #v: [Double], inout #d:[Double])
 {
+    var dOld = [Double](count: CELL_COUNT, repeatedValue: 0);
+
     d = addSource(d, x0: dOld);
 
     swap(&d, &dOld);
@@ -98,7 +100,7 @@ func densitySolver(#u: [Double], #v: [Double], inout #d:[Double], inout #dOld: [
     
     d = advect(0, d0: dOld, du: u, dv: v);
     
-    dOld = [Double](count: CELL_COUNT, repeatedValue: 0);
+    
 }
 
 func velocitySolver(#d:[Double], #u: [Double], #v: [Double], #curl:[Double])->(u: [Double], v: [Double], curl: [Double])
