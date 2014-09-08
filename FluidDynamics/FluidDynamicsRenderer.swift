@@ -30,18 +30,19 @@ private func imageFromARGB32Bitmap(pixels:[PixelData], width:UInt, height:UInt)-
 
 func renderFluidDynamics(densities : [Double]) -> UIImage
 {
-    var pixelArray = [PixelData](count: densities.count, repeatedValue: PixelData(a: 255, r:0, g: 0, b: 0));
+    var pixelArray = [PixelData](count: GRID_HEIGHT * GRID_WIDTH, repeatedValue: PixelData(a: 255, r:0, g: 0, b: 0));
  
     //for var i = 0; i < FluidDynamicsSolver_v2.CELL_COUNT; i++
+    var outIndex = 0
     for j in 0..<GRID_HEIGHT {
     for i in 0..<GRID_WIDTH
     {
         let index = ViewController.getIndex(i, j: j)
         let pixelValue = UInt8(255 * densities[index]);
         
-        pixelArray[index].r = pixelValue;
-        pixelArray[index].g = pixelValue;
-        pixelArray[index].b = pixelValue;
+        pixelArray[outIndex].r = pixelValue;
+        pixelArray[outIndex].g = pixelValue;
+        pixelArray[outIndex++].b = pixelValue;
     }
     }
     
