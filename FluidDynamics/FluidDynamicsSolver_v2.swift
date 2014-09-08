@@ -113,15 +113,13 @@ func velocitySolver(#d:[Double], inout #u: [Double], inout #v: [Double], inout #
     
     addSourceUV(uvReturn.uReturn, uvReturn.vReturn, &u, &v);
     var uOld = uvReturn.uReturn
-    var vOld = uvReturn.vReturn
-    buoyancy(d, &vOld);
+    var vOld = buoyancy(d);
     
     v = addSource(v, x0: vOld);
     
-    swap(&u, &uOld)
-    swap(&v, &vOld);
-    
-    diffuseUV(uOld: uOld, vOld: vOld, u: &u, v: &v);
+    let uv = diffuseUV(uOld: u, vOld: v, u: uOld, v: vOld);
+    u = uv.u
+    v = uv.v
     
     project(u: &u, v: &v);
     
@@ -284,10 +282,13 @@ func project(inout #u:[Double], inout #v:[Double])
     v = setBoundry(2, x: v);
 }
 
-func diffuseUV(#uOld:[Double], #vOld:[Double], inout #u:[Double], inout #v:[Double])
+func diffuseUV(#uOld:[Double], #vOld:[Double], #u:[Double], #v:[Double])->(u: [Double], v: [Double])
 {
     let a:Double = dt * diff * Double(CELL_COUNT);
     let c:Double = 1 + 4 * a
+    
+    var returnU = u
+    var returnV = v
     
     for var k = 0; k < linearSolverIterations ; k++
     {
@@ -303,12 +304,13 @@ func diffuseUV(#uOld:[Double], #vOld:[Double], inout #u:[Double], inout #v:[Doub
                 let top = index - LINE_STRIDE;
                 let bottom = index + LINE_STRIDE;
                 
-                u[index] = (a * ( u[left] + u[right] + u[top] + u[bottom]) + uOld[index]) / c;
+                returnU[index] = (a * ( returnU[left] + returnU[right] + returnU[top] + returnU[bottom]) + uOld[index]) / c;
                 
-                v[index] = (a * ( v[left] + v[right] + v[top] + v[bottom]) + vOld[index]) / c;
+                returnV[index] = (a * ( returnV[left] + returnV[right] + returnV[top] + returnV[bottom]) + vOld[index]) / c;
             }
         }
     }
+    return (u: returnU, v: returnV)
 }
 
 func diffuse(b:Int, #c:[Double], #c0:[Double], #diff:Double) -> [Double]
@@ -395,12 +397,12 @@ static func swapV()
 }
 */
 // buoyancy always on vOld...
-func buoyancy(d:[Double], inout vOld:[Double])
+func buoyancy(d:[Double])->[Double]
 {
     var Tamb:Double = 0;
     var a:Double = 0.000625 //0.000625;
     var b:Double = 0.025 //0.025;
-    
+    var returnV = [Double](count: CELL_COUNT, repeatedValue: 0);
     
     // sum all temperatures
     for var i = 1; i <= GRID_WIDTH; i++
@@ -423,9 +425,10 @@ func buoyancy(d:[Double], inout vOld:[Double])
         {
             let index = getIndex(i, j: j);
             
-            vOld[index] = a * d[index] + -b * (d[index] - Tamb);
+            returnV[index] = a * d[index] + -b * (d[index] - Tamb);
         }
     }
+    return returnV
 }
 
 
