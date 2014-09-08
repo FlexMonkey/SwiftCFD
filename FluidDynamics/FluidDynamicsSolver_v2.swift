@@ -140,7 +140,7 @@ static func advectUV()
     for j in 0..<GRID_HEIGHT
     {
         //for var j = GRID_HEIGHT; j >= 1; j--
-        for i in 0..<GRID_HEIGHT
+        for i in 0..<GRID_WIDTH
         {
             let index = getIndex(i, j :j);
             //let index = GRID_WIDTH * j + i
@@ -510,6 +510,6 @@ static func swapV()
 }
 static func getIndex(i : Int, j : Int) -> Int
 {
-    return i + 1 + (FluidDynamicsSolver_v2.GRID_WIDTH + 2) * j;
+    return i + 1 + LINE_STRIDE * (j + 1);
 }
 }

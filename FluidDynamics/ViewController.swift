@@ -108,7 +108,7 @@ class ViewController: UIViewController {
 
     class func getIndex(i : Int, j : Int) -> Int
     {
-        return i + 1 + (FluidDynamicsSolver_v2.GRID_WIDTH + 2) * j;
+        return i + 1 + (FluidDynamicsSolver_v2.GRID_WIDTH + 2) * (j + 1);
     }
     
 }
