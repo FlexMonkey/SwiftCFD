@@ -102,18 +102,18 @@ func velocitySolver(#d:[Double], inout #u: [Double], inout #v: [Double], inout #
 {
     //u = addSource(u, uOld);
     //v = addSource(v, vOld);
-    var uOld = [Double](count: CELL_COUNT, repeatedValue: 0);
-    var vOld = [Double](count: CELL_COUNT, repeatedValue: 0);
     
-    addSourceUV(uOld, vOld, &u, &v);
+    // Redundant
+    //addSourceUV(uOld, vOld, &u, &v);
     
-    vorticityConfinement(u: u, v: v, curl: &curl, uOld: &uOld, vOld: &vOld);
+    var uvReturn = vorticityConfinement(u: u, v: v, curl: &curl);
     
     // u = addSource(u, uOld);
     // v = addSource(v, vOld);
     
-    addSourceUV(uOld, vOld, &u, &v);
-    
+    addSourceUV(uvReturn.uReturn, uvReturn.vReturn, &u, &v);
+    var uOld = uvReturn.uReturn
+    var vOld = uvReturn.vReturn
     buoyancy(d, &vOld);
     
     v = addSource(v, x0: vOld);
@@ -323,8 +323,10 @@ func diffuse(b:Int, #c:[Double], #c0:[Double], #diff:Double) -> [Double]
 
 
 // always on vorticityConfinement(uOld, vOld);
-func vorticityConfinement(#u:[Double], #v:[Double], inout #curl:[Double], inout #uOld:[Double], inout #vOld:[Double])
+func vorticityConfinement(#u:[Double], #v:[Double], inout #curl:[Double])->(uReturn:[Double], vReturn:[Double])
 {
+    var uReturn = [Double](count: CELL_COUNT, repeatedValue: 0);
+    var vReturn = [Double](count: CELL_COUNT, repeatedValue: 0);
     //for var i = GRID_WIDTH; i >= 1; i--
     for j in 0..<GRID_HEIGHT
     {
@@ -361,10 +363,11 @@ func vorticityConfinement(#u:[Double], #v:[Double], inout #curl:[Double], inout 
             var v0 = curlf(i, j: j, u: u, v: v);
             
             // N x w
-            uOld[getIndex(i, j: j)] = dw_dy * -v0;
-            vOld[getIndex(i, j: j)] = dw_dx *  v0;
+            uReturn[getIndex(i, j: j)] = dw_dy * -v0;
+            vReturn[getIndex(i, j: j)] = dw_dx *  v0;
         }
     }
+    return (uReturn: uReturn, vReturn: vReturn)
 }
 
 /*
