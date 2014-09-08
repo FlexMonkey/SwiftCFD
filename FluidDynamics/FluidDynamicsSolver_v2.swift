@@ -132,8 +132,6 @@ static func velocitySolver()
 
 static func advectUV()
 {
-    let dt0 = dt * DBL_GRID_HEIGHT;
-    
     let dt0x = dt * DBL_GRID_HEIGHT;
     let dt0y = dt * DBL_GRID_HEIGHT;
     
