@@ -89,9 +89,9 @@ static func densitySolver()
 {
     d = addSource(d, x0: dOld);
 
-    swapD();
+    swap(&d, &dOld);
     d = diffuse(0, c: d, c0: dOld, diff: diff);
-    swapD();
+    swap(&d, &dOld);
     
     d = advect(0, d0: dOld, du: u, dv: v);
     
@@ -116,15 +116,15 @@ static func velocitySolver()
     
     v = addSource(v, x0: vOld);
     
-    swapU();
-    swapV();
+    swap(&u, &uOld)
+    swap(&v, &vOld);
     
     diffuseUV();
     
     project();
     
-    swapU();
-    swapV();
+    swap(&u, &uOld);
+    swap(&v, &vOld);
 
     advectUV();
     
@@ -362,7 +362,7 @@ static func vorticityConfinement()
         //        for var j = GRID_HEIGHT; j >= 1; j--
         for i in 0..<GRID_WIDTH
         {
-            let tt=curlf(i, j: j)
+            let tt=curlf(i, j: j, u: u, v: v)
             curl[getIndex(i, j: j)] = tt<0 ? tt * -1:tt;
         }
     }
@@ -389,29 +389,16 @@ static func vorticityConfinement()
             dw_dx /= length;
             dw_dy /= length;
             
-            var v = curlf(i, j: j);
+            var v0 = curlf(i, j: j, u: u, v: v);
             
             // N x w
-            uOld[getIndex(i, j: j)] = dw_dy * -v;
-            vOld[getIndex(i, j: j)] = dw_dx *  v;
+            uOld[getIndex(i, j: j)] = dw_dy * -v0;
+            vOld[getIndex(i, j: j)] = dw_dx *  v0;
         }
     }
 }
 
-static func curlf(i:Int, j:Int) -> Double
-{
-    let index = getIndex(i, j: j);
-    let left = index - 1;
-    let right = index + 1;
-    let top = index - LINE_STRIDE;
-    let bottom = index + LINE_STRIDE;
-    
-    var du_dy:Double = (u[bottom] - u[top]) * 0.5;
-    var dv_dx:Double = (v[right] - v[left]) * 0.5;
-    
-    return du_dy - dv_dx;
-}
-
+/*
 static func swapD()
 {
     let tmp = d;
@@ -432,8 +419,16 @@ static func swapV()
     v = vOld;
     vOld = tmp;
 }
-
+*/
 }
+
+// This costs 2 full array copies!!!
+func swap(inout a:[Double], inout b:[Double]) {
+    let tmp = a
+    a = b
+    b = tmp
+}
+
 func linearSolver(b:Int, #x:[Double], #x0:[Double], #a:Double, #c:Double) -> [Double]
 {
     var returnArray = [Double](count: CELL_COUNT, repeatedValue: 0.0)
@@ -501,6 +496,21 @@ func setBoundry(b:Int, #x:[Double]) -> [Double]
     return returnArray;
     */
 }
+
+func curlf(i:Int, #j:Int, #u: [Double], #v: [Double]) -> Double
+{
+    let index = getIndex(i, j: j);
+    let left = index - 1;
+    let right = index + 1;
+    let top = index - LINE_STRIDE;
+    let bottom = index + LINE_STRIDE;
+    
+    var du_dy:Double = (u[bottom] - u[top]) * 0.5;
+    var dv_dx:Double = (v[right] - v[left]) * 0.5;
+    
+    return du_dy - dv_dx;
+}
+
 
 // No performance cost to pass as arguments makes it testable and performance testable.
 func addSourceUV(uOld: [Double], vOld:[Double], inout u:[Double], inout v:[Double]) {
