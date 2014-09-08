@@ -45,34 +45,34 @@ static var curl = [Double](count: CELL_COUNT, repeatedValue: 0);
 static func fluidDynamicsStep() -> [Double]
 {
     let startTime : CFAbsoluteTime = CFAbsoluteTimeGetCurrent();
-    
+
     if frameNumber++ < 100
     {
         for i in 90 ..< 110
         {
             for j in 90 ..< 110
             {
-                let random = Int(arc4random() % 100);
+                let random = Int(arc4random_uniform(100));
    
                 if random > frameNumber
                 {
-                    d[ViewController.getIndex(i, j: j)] = d[ViewController.getIndex(i, j: j)] + Double(arc4random() % 25) / 25;
+                    d[ViewController.getIndex(i, j: j)] = d[ViewController.getIndex(i, j: j)] + Double(arc4random_uniform(25)) / 25;
                     
                     d[ViewController.getIndex(i, j: j)] = d[ViewController.getIndex(i, j: j)] > 1 ? 1 : d[ViewController.getIndex(i, j: j)];
                     
-                    let randomU = (Double((arc4random() % 100)) / 100) * ((arc4random() % 100) >= 50 ? -4.0 : 4.0);
+                    let randomU = (Double(arc4random_uniform(100)) / 100) * (arc4random_uniform(100) >= 50 ? -4.0 : 4.0);
                     u[ViewController.getIndex(i, j: j)] = randomU
                     
-                    let randomV = (Double((arc4random() % 100)) / 100) * ((arc4random() % 100) >= 50 ? -4.0 : 4.5);
+                    let randomV = (Double(arc4random_uniform(100)) / 100) * (arc4random_uniform(100) >= 50 ? -4.0 : 4.5);
                     v[ViewController.getIndex(i, j: j)] = randomV
                     
-                    let randomCurl = (Double((arc4random() % 100)) / 100) * ((arc4random() % 100) >= 50 ? -4.0 : 4.0);
+                    let randomCurl = (Double(arc4random_uniform(100)) / 100) * (arc4random_uniform(100) >= 50 ? -4.0 : 4.0);
                     curl[ViewController.getIndex(i, j: j)] = randomCurl
                 }
             }
         }
     }
-    
+
     velocitySolver();
     densitySolver();
     
@@ -137,11 +137,14 @@ static func advectUV()
     let dt0x = dt * DBL_GRID_HEIGHT;
     let dt0y = dt * DBL_GRID_HEIGHT;
     
-    for var i = GRID_HEIGHT; i >= 1; i--
+    //for var i = GRID_HEIGHT; i >= 1; i--
+    for i in 1...GRID_HEIGHT
     {
-        for var j = GRID_HEIGHT; j >= 1; j--
+        //for var j = GRID_HEIGHT; j >= 1; j--
+        for j in 1...GRID_HEIGHT
         {
-            let index = ViewController.getIndex(i, j :j);
+            //let index = ViewController.getIndex(i, j :j);
+            let index = GRID_WIDTH * j + i
             
             var x = Double(i) - dt0x * uOld[index];
             var y = Double(j) - dt0y * vOld[index];
