@@ -34,19 +34,17 @@ let linearSolverIterations = 2;
 struct FluidDynamicsSolver_v2
 {
 
-static var frameNumber : Int = 0;
+var frameNumber : Int = 0;
 
-
-
-static var d = [Double](count: CELL_COUNT, repeatedValue: 0);
+var d = [Double](count: CELL_COUNT, repeatedValue: 0);
 // static var dOld = [Double](count: CELL_COUNT, repeatedValue: 0);
-static var u = [Double](count: CELL_COUNT, repeatedValue: 0);
+var u = [Double](count: CELL_COUNT, repeatedValue: 0);
     //static var uOld = [Double](count: CELL_COUNT, repeatedValue: 0);
-static var v = [Double](count: CELL_COUNT, repeatedValue: 0);
+var v = [Double](count: CELL_COUNT, repeatedValue: 0);
     //static var vOld = [Double](count: CELL_COUNT, repeatedValue: 0);
-static var curl = [Double](count: CELL_COUNT, repeatedValue: 0);
+var curl = [Double](count: CELL_COUNT, repeatedValue: 0);
 
-static func fluidDynamicsStep() -> [Double]
+mutating func fluidDynamicsStep() -> [Double]
 {
     let startTime : CFAbsoluteTime = CFAbsoluteTimeGetCurrent();
 
@@ -77,30 +75,27 @@ static func fluidDynamicsStep() -> [Double]
         }
     }
     let velStartTime : CFAbsoluteTime = CFAbsoluteTimeGetCurrent();
-    (u, v, curl) = velocitySolver(d: d, u: u, v: v, curl: curl)
+    let uvc = velocitySolver(d: d, u: u, v: v, curl: curl)
     let velStopTime = CFAbsoluteTimeGetCurrent()
-    densitySolver(u: u, v: v, d: &d);
+    let dlocal = densitySolver(u: uvc.u, v: uvc.v, d: d);
     let densityStopTime = CFAbsoluteTimeGetCurrent()
     
+    (u, v, curl) = uvc
+    d = dlocal
+    let globalWriteTime = CFAbsoluteTimeGetCurrent()
     println("CFD SOLVE:" + NSString(format: "%.4f", CFAbsoluteTimeGetCurrent() - startTime));
-    println("Velocity Solver Time = \(velStopTime - velStartTime)  Density Solver Time = \(densityStopTime - velStopTime)")
+    println("Velocity Solver Time = \(velStopTime - velStartTime)  Density Solver Time = \(densityStopTime - velStopTime) Global write time: \(globalWriteTime - densityStopTime)")
     
     return d;
 }
 }
-func densitySolver(#u: [Double], #v: [Double], inout #d:[Double])
+func densitySolver(#u: [Double], #v: [Double], #d:[Double])->[Double]
 {
-    var dOld = [Double](count: CELL_COUNT, repeatedValue: 0);
-
-    d = addSource(d, x0: dOld);
-
-    swap(&d, &dOld);
-    d = diffuse(0, c: d, c0: dOld, diff: diff);
-    swap(&d, &dOld);
-    
-    d = advect(0, d0: dOld, du: u, dv: v);
-    
-    
+    let dOld = [Double](count: CELL_COUNT, repeatedValue: 0);
+    //let diffTime = CFAbsoluteTimeGetCurrent()
+    let d1 = diffuse(0, c: dOld, c0: d, diff: diff);
+    //print("Diffuse time: \(CFAbsoluteTimeGetCurrent() - diffTime)")
+    return advect(0, d0: d1, du: u, dv: v);
 }
 
 func velocitySolver(#d:[Double], #u: [Double], #v: [Double], #curl:[Double])->(u: [Double], v: [Double], curl: [Double])
@@ -117,16 +112,16 @@ func velocitySolver(#d:[Double], #u: [Double], #v: [Double], #curl:[Double])->(u
     
     let uv0 = addSourceUV(uvcReturn.uReturn, uvcReturn.vReturn, u, v);
     
-    var uOld = uvcReturn.uReturn
+   // var uOld = uvcReturn.uReturn
     var vOld = buoyancy(d);
     
     let v0 = addSource(uv0.v, x0: vOld);
     
-    let uv1 = diffuseUV(uOld: uv0.u, vOld: v0, u: uOld, v: vOld);
+    let uv1 = diffuseUV(uOld: uv0.u, vOld: v0, u: uvcReturn.uReturn, v: vOld);
     
     let uv2 = project(u: uv1.u, v: uv1.v);
 
-    let uv3 = advectUV(uOld: uv2.u, vOld: uv2.v, u: uOld, v: vOld);
+    let uv3 = advectUV(uOld: uv2.u, vOld: uv2.v, u: uvcReturn.uReturn, v: vOld);
     
     let uv4 = project(u: uv3.u, v: uv3.v);
     

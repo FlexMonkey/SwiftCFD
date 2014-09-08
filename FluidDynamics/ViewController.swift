@@ -11,6 +11,7 @@ import UIKit
 class ViewController: UIViewController {
     
     var densities : [Double] = [Double](count: CELL_COUNT, repeatedValue: 0);
+    var fds = FluidDynamicsSolver_v2()
     
     @IBOutlet var uiImageView: UIImageView!
     var uiImage : UIImage?;
@@ -29,7 +30,7 @@ class ViewController: UIViewController {
 
     @IBAction func buttonClick(sender: AnyObject)
     {
-        FluidDynamicsSolver_v2.frameNumber = 0;
+        fds.frameNumber = 0;
     }
     
     var previousTouchX : Int?;
@@ -55,14 +56,15 @@ class ViewController: UIViewController {
                         
                         if targetIndex > 0 && targetIndex < CELL_COUNT
                         {
-                            FluidDynamicsSolver_v2.d[targetIndex] = 0.9;
+                            // You can't do this while it might be being modified on the background thread.
+                            fds.d[targetIndex] = 0.9;
                             
                             if let ptx = previousTouchX
                             {
                                 if let pty = previousTouchY
                                 {
-                                    FluidDynamicsSolver_v2.u[targetIndex] = FluidDynamicsSolver_v2.u[targetIndex] + Double((Int(scaledX) - ptx))
-                                    FluidDynamicsSolver_v2.v[targetIndex] = FluidDynamicsSolver_v2.v[targetIndex] + Double((Int(scaledY) - pty))
+                                    fds.u[targetIndex] = fds.u[targetIndex] + Double((Int(scaledX) - ptx))
+                                    fds.v[targetIndex] = fds.v[targetIndex] + Double((Int(scaledY) - pty))
                                 }
                             }
                         }
@@ -82,14 +84,14 @@ class ViewController: UIViewController {
     
     func dispatchSolve()
     {
+        
         Async.background
         {
-            self.densities = FluidDynamicsSolver_v2.fluidDynamicsStep()
+            self.densities = self.fds.fluidDynamicsStep()
         }
         .main
         {
             self.dispatchRender();
-          
             self.dispatchSolve();
         }
     }
