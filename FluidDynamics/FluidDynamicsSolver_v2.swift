@@ -531,5 +531,8 @@ static func swapV()
     v = vOld;
     vOld = tmp;
 }
-    
+static func getIndex(i : Int, j : Int) -> Int
+{
+    return i + 1 + (FluidDynamicsSolver_v2.GRID_WIDTH + 2) * j;
+}
 }
