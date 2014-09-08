@@ -77,15 +77,15 @@ static func fluidDynamicsStep() -> [Double]
         }
     }
 
-    velocitySolver();
-    densitySolver();
+    velocitySolver(d: d, uOld: &uOld, vOld: &vOld, u: &u, v: &v, curl: &curl)
+    densitySolver(u: u, v: v, d: &d, dOld: &dOld);
     
     println("CFD SOLVE:" + NSString(format: "%.4f", CFAbsoluteTimeGetCurrent() - startTime));
     
     return d;
 }
-
-static func densitySolver()
+}
+func densitySolver(#u: [Double], #v: [Double], inout #d:[Double], inout #dOld: [Double])
 {
     d = addSource(d, x0: dOld);
 
@@ -98,10 +98,11 @@ static func densitySolver()
     dOld = [Double](count: CELL_COUNT, repeatedValue: 0);
 }
 
-static func velocitySolver()
+func velocitySolver(#d:[Double], inout #uOld:[Double], inout #vOld:[Double], inout #u: [Double], inout #v: [Double], inout #curl:[Double])
 {
     //u = addSource(u, uOld);
     //v = addSource(v, vOld);
+    
     
     addSourceUV(uOld, vOld, &u, &v);
     
@@ -119,22 +120,22 @@ static func velocitySolver()
     swap(&u, &uOld)
     swap(&v, &vOld);
     
-    diffuseUV();
+    diffuseUV(uOld: uOld, vOld: vOld, u: &u, v: &v);
     
-    project();
+    project(u: &u, v: &v);
     
     swap(&u, &uOld);
     swap(&v, &vOld);
 
-    advectUV();
+    advectUV(uOld: uOld, vOld: vOld, u: &u, v: &v);
     
-    project()
+    project(u: &u, v: &v);
     
     uOld = [Double](count: CELL_COUNT, repeatedValue: 0);
     vOld = [Double](count: CELL_COUNT, repeatedValue: 0);
 }
 
-static func advectUV()
+func advectUV(#uOld:[Double], #vOld:[Double], inout #u: [Double], inout #v: [Double])
 {
     let dt0x = dt * DBL_GRID_HEIGHT;
     let dt0y = dt * DBL_GRID_HEIGHT;
@@ -178,7 +179,7 @@ static func advectUV()
     }
 }
 
-static func advect (b:Int, d0:[Double], du:[Double], dv:[Double]) -> [Double]
+func advect (b:Int, #d0:[Double], #du:[Double], #dv:[Double]) -> [Double]
 {
     var returnArray = [Double](count: CELL_COUNT, repeatedValue: 0.0)
 
@@ -232,8 +233,9 @@ static func advect (b:Int, d0:[Double], du:[Double], dv:[Double]) -> [Double]
     return returnArray;
 }
 
+
 // project is always on u and v....
-static func project()
+func project(inout #u:[Double], inout #v:[Double])
 {
     var p = [Double](count: CELL_COUNT, repeatedValue: 0);
     var div = [Double](count: CELL_COUNT, repeatedValue: 0);
@@ -282,7 +284,7 @@ static func project()
     v = setBoundry(2, x: v);
 }
 
-static  func diffuseUV()
+func diffuseUV(#uOld:[Double], #vOld:[Double], inout #u:[Double], inout #v:[Double])
 {
     let a:Double = dt * diff * Double(CELL_COUNT);
     let c:Double = 1 + 4 * a
@@ -309,8 +311,7 @@ static  func diffuseUV()
     }
 }
 
-
-static func diffuse(b:Int, c:[Double], c0:[Double], diff:Double) -> [Double]
+func diffuse(b:Int, #c:[Double], #c0:[Double], #diff:Double) -> [Double]
 {
     let a:Double = dt * diff * Double(CELL_COUNT);
     
@@ -319,7 +320,7 @@ static func diffuse(b:Int, c:[Double], c0:[Double], diff:Double) -> [Double]
     return returnArray
 }
 
-}
+
 
 // always on vorticityConfinement(uOld, vOld);
 func vorticityConfinement(#u:[Double], #v:[Double], inout #curl:[Double], inout #uOld:[Double], inout #vOld:[Double])
