@@ -235,16 +235,17 @@ static func project()
 {
     var p = [Double](count: CELL_COUNT, repeatedValue: 0);
     var div = [Double](count: CELL_COUNT, repeatedValue: 0);
-    
-    for var j = GRID_HEIGHT; j >= 1; j--
+    //for var j = GRID_HEIGHT; j >= 1; j--
+    for j in 0..<GRID_HEIGHT
     {
-        for var i = GRID_WIDTH; i >= 1; i--
+        //for var i = GRID_WIDTH; i >= 1; i--
+        for i in 0..<GRID_WIDTH
         {
             let index = getIndex(i, j : j);
             let left = index - 1;
             let right = index + 1;
-            let top = index - GRID_WIDTH;
-            let bottom = index + GRID_WIDTH;
+            let top = index - LINE_STRIDE;
+            let bottom = index + LINE_STRIDE;
             
             div[index] = (u[right] - u[left] + v[bottom] - v[top]) * -0.5 / DBL_GRID_HEIGHT;
             
@@ -258,11 +259,11 @@ static func project()
     
     p = linearSolver(0, x: p, x0: div, a: 1, c: 4);
     
-    for var j = GRID_HEIGHT; j >= 1; j--
-    //for j in 0..<GRID_HEIGHT
+    //for var j = GRID_HEIGHT; j >= 1; j--
+    for j in 0..<GRID_HEIGHT
     {
-                for var i = GRID_WIDTH; i >= 1; i--
-                    //for i in 0..<GRID_WIDTH
+        //            for var i = GRID_WIDTH; i >= 1; i--
+        for i in 0..<GRID_WIDTH
         {
             let index = getIndex(i, j : j);
             let left = index - 1;
@@ -286,15 +287,17 @@ static  func diffuseUV()
     
     for var k = 0; k < linearSolverIterations ; k++
     {
-        for var i = GRID_WIDTH; i >= 1; i--
+        //for var i = GRID_WIDTH; i >= 1; i--
+        for j in 0..<GRID_HEIGHT
         {
-            for var j = GRID_HEIGHT; j >= 1; j--
+            //for var j = GRID_HEIGHT; j >= 1; j--
+            for i in 0..<GRID_WIDTH
             {
                 let index = getIndex(i, j: j);
                 let left = index - 1;
                 let right = index + 1;
-                let top = index - GRID_WIDTH;
-                let bottom = index + GRID_WIDTH;
+                let top = index - LINE_STRIDE;
+                let bottom = index + LINE_STRIDE;
                 
                 u[index] = (a * ( u[left] + u[right] + u[top] + u[bottom]) + uOld[index]) / c;
                 
@@ -310,15 +313,17 @@ static func linearSolver(b:Int, x:[Double], x0:[Double], a:Double, c:Double) -> 
     
     for var k = 0; k < linearSolverIterations ; k++
     {
-        for var i = GRID_WIDTH; i >= 1; i--
+        //for var i = GRID_WIDTH; i >= 1; i--
+        for j in 0..<GRID_HEIGHT
         {
-            for var j = GRID_HEIGHT; j >= 1; j--
+            //for var j = GRID_HEIGHT; j >= 1; j--
+            for i in 0..<GRID_WIDTH
             {
                 let index = getIndex(i, j: j);
                 let left = index - 1;
                 let right = index + 1;
-                let top = index - GRID_WIDTH;
-                let bottom = index + GRID_WIDTH;
+                let top = index - LINE_STRIDE;
+                let bottom = index + LINE_STRIDE;
                 
                 returnArray[index] = (a * ( x[left] + x[right] + x[top] + x[bottom]) + x0[index]) / c;
             }
@@ -373,9 +378,11 @@ static func buoyancy()
 // always on vorticityConfinement(uOld, vOld);
 static func vorticityConfinement()
 {
-    for var i = GRID_WIDTH; i >= 1; i--
+    //for var i = GRID_WIDTH; i >= 1; i--
+    for j in 0..<GRID_HEIGHT
     {
-        for var j = GRID_HEIGHT; j >= 1; j--
+        //        for var j = GRID_HEIGHT; j >= 1; j--
+        for i in 0..<GRID_WIDTH
         {
             let tt=curlf(i, j: j)
             curl[getIndex(i, j: j)] = tt<0 ? tt * -1:tt;
@@ -416,8 +423,8 @@ static func curlf(i:Int, j:Int) -> Double
     let index = getIndex(i, j: j);
     let left = index - 1;
     let right = index + 1;
-    let top = index - GRID_WIDTH;
-    let bottom = index + GRID_WIDTH;
+    let top = index - LINE_STRIDE;
+    let bottom = index + LINE_STRIDE;
     
     var du_dy:Double = (u[bottom] - u[top]) * 0.5;
     var dv_dx:Double = (v[right] - v[left]) * 0.5;
