@@ -227,10 +227,7 @@ func advect (b:Int, #d0:[Double], #du:[Double], #dv:[Double]) -> [Double]
             returnArray[index] = cellValue;
         }
     }
-    
-    returnArray = setBoundry(b, x: returnArray);
-    
-    return returnArray;
+    return setBoundry(b, x: returnArray);
 }
 
 
@@ -323,9 +320,7 @@ func diffuse(b:Int, #c:[Double], #c0:[Double], #diff:Double) -> [Double]
 {
     let a:Double = dt * diff * Double(CELL_COUNT);
     
-    let returnArray = linearSolver(b, x: c, x0: c0, a: a, c: 1 + 4 * a);
-    
-    return returnArray
+    return linearSolver(b, x: c, x0: c0, a: a, c: 1 + 4 * a);
 }
 
 
