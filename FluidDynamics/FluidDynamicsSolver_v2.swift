@@ -155,7 +155,7 @@ func advectUV(#uOld:[Double], #vOld:[Double], #u: [Double], #v: [Double])->(u: [
             y = max(y, 0.5)
             
             let i0 = Int(x);
-            let i1 = i0 + 1.0;
+            let i1 = i0 + 1;
             
             let j0 = Int(y);
             let j1 = j0 + 1;
