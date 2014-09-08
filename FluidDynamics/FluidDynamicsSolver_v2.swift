@@ -19,21 +19,24 @@
 
 import Foundation
 
+let GRID_WIDTH = 200;
+let GRID_HEIGHT = 200;
+let LINE_STRIDE = GRID_HEIGHT + 2
+let DBL_GRID_HEIGHT = Double(GRID_HEIGHT);
+let CELL_COUNT = (GRID_WIDTH + 2) * (GRID_HEIGHT + 2);
+
+let dt = 0.1;
+let visc = 0.0;
+let diff = 0.0;
+let linearSolverIterations = 2;
+
+
 struct FluidDynamicsSolver_v2
 {
 
 static var frameNumber : Int = 0;
 
-static let GRID_WIDTH = 200;
-static let GRID_HEIGHT = 200;
-static let LINE_STRIDE = GRID_HEIGHT + 2
-static let DBL_GRID_HEIGHT = Double(GRID_HEIGHT);
-static let CELL_COUNT = (GRID_WIDTH + 2) * (GRID_HEIGHT + 2);
 
-static let dt = 0.1;
-static let visc = 0.0;
-static let diff = 0.0;
-static let linearSolverIterations = 2;
 
 static var d = [Double](count: CELL_COUNT, repeatedValue: 0);
 static var dOld = [Double](count: CELL_COUNT, repeatedValue: 0);
@@ -100,14 +103,14 @@ static func velocitySolver()
     //u = addSource(u, uOld);
     //v = addSource(v, vOld);
     
-    addSourceUV();
+    addSourceUV(uOld, vOld, &u, &v);
     
     vorticityConfinement();
     
     // u = addSource(u, uOld);
     // v = addSource(v, vOld);
     
-    addSourceUV();
+    addSourceUV(uOld, vOld, &u, &v);
     
     buoyancy();
     
@@ -173,7 +176,6 @@ static func advectUV()
             v[index] = s0 * (t0 * v[i0j0] + t1 * vOld[i0j1]) + s1 * (t0 * vOld[i1j0] + t1 * vOld[i1j1]);
         }
     }
-
 }
 
 static func advect (b:Int, d0:[Double], du:[Double], dv:[Double]) -> [Double]
@@ -307,32 +309,6 @@ static  func diffuseUV()
     }
 }
 
-static func linearSolver(b:Int, x:[Double], x0:[Double], a:Double, c:Double) -> [Double]
-{
-    var returnArray = [Double](count: CELL_COUNT, repeatedValue: 0.0)
-    
-    for var k = 0; k < linearSolverIterations ; k++
-    {
-        //for var i = GRID_WIDTH; i >= 1; i--
-        for j in 0..<GRID_HEIGHT
-        {
-            //for var j = GRID_HEIGHT; j >= 1; j--
-            for i in 0..<GRID_WIDTH
-            {
-                let index = getIndex(i, j: j);
-                let left = index - 1;
-                let right = index + 1;
-                let top = index - LINE_STRIDE;
-                let bottom = index + LINE_STRIDE;
-                
-                returnArray[index] = (a * ( x[left] + x[right] + x[top] + x[bottom]) + x0[index]) / c;
-            }
-        }
-        returnArray = setBoundry(b, x: returnArray);
-    }
-    
-    return returnArray;
-}
 
 static func diffuse(b:Int, c:[Double], c0:[Double], diff:Double) -> [Double]
 {
@@ -436,69 +412,6 @@ static func curlf(i:Int, j:Int) -> Double
     return du_dy - dv_dx;
 }
 
-static func setBoundry(b:Int, x:[Double]) -> [Double]
-{
-    var returnArray = x;
-    
-    return returnArray;
-    
-    /*
-    for var i = GRID_HEIGHT; i >= 1; i--
-    {
-        if(b==1)
-        {
-            returnArray[getIndex(  0, i  )] = -x[getIndex(1, i)];
-            returnArray[getIndex(GRID_HEIGHT+1, i  )] = -x[getIndex(GRID_HEIGHT, i)];
-        }
-        else
-        {
-            returnArray[getIndex(  0, i  )] = x[getIndex(1, i)];
-            returnArray[getIndex(GRID_HEIGHT+1, i  )] = x[getIndex(GRID_HEIGHT, i)];
-        }
-        
-        if(b==2)
-        {
-            returnArray[getIndex(  i, 0  )] = -x[getIndex(i, 1)];
-            returnArray[getIndex(  i, GRID_HEIGHT+1)] = -x[getIndex(i, GRID_HEIGHT)];
-        }
-        else
-        {
-            returnArray[getIndex(  i, 0  )] = x[getIndex(i, 1)];
-            returnArray[getIndex(  i, GRID_HEIGHT+1)] = x[getIndex(i, GRID_HEIGHT)];
-        }
-    }
-    
-    returnArray[getIndex(0, 0)] = 0.5 * (x[getIndex(1, 0  )] + x[getIndex(0, 1)]);
-    returnArray[getIndex(0, GRID_HEIGHT+1)] = 0.5 * (x[getIndex(1, GRID_HEIGHT+1)] + x[getIndex(  0, GRID_HEIGHT)]);
-    returnArray[getIndex(GRID_HEIGHT+1, 0)] = 0.5 * (x[getIndex(GRID_HEIGHT, 0)] + x[getIndex(GRID_HEIGHT+1, 1)]);
-    returnArray[getIndex(GRID_HEIGHT+1, GRID_HEIGHT+1)] = 0.5 * (x[getIndex(GRID_HEIGHT, GRID_HEIGHT+1)] + x[getIndex(GRID_HEIGHT+1, GRID_HEIGHT)]);
-    
-    return returnArray;
-    */
-}
-
-static func addSourceUV()
-{
-    for var i = CELL_COUNT - 1; i >= 0; i--
-    {
-        u[i] = u[i] + dt * uOld[i];
-        v[i] = v[i] + dt * vOld[i];
-    }
-}
-
-static func addSource(x:[Double], x0:[Double]) -> [Double]
-{
-    var returnArray = [Double](count: CELL_COUNT, repeatedValue: 0.0)
-    
-    for var i = CELL_COUNT - 1; i >= 0; i--
-    {
-        returnArray[i] = x[i] + dt * x0[i];
-    }
-    
-    return returnArray;
-}
-
-
 static func swapD()
 {
     let tmp = d;
@@ -519,8 +432,98 @@ static func swapV()
     v = vOld;
     vOld = tmp;
 }
-static func getIndex(i : Int, j : Int) -> Int
+
+}
+func linearSolver(b:Int, #x:[Double], #x0:[Double], #a:Double, #c:Double) -> [Double]
+{
+    var returnArray = [Double](count: CELL_COUNT, repeatedValue: 0.0)
+    
+    for var k = 0; k < linearSolverIterations ; k++
+    {
+        //for var i = GRID_WIDTH; i >= 1; i--
+        for j in 0..<GRID_HEIGHT
+        {
+            //for var j = GRID_HEIGHT; j >= 1; j--
+            for i in 0..<GRID_WIDTH
+            {
+                let index = getIndex(i, j: j);
+                let left = index - 1;
+                let right = index + 1;
+                let top = index - LINE_STRIDE;
+                let bottom = index + LINE_STRIDE;
+                
+                returnArray[index] = (a * ( x[left] + x[right] + x[top] + x[bottom]) + x0[index]) / c;
+            }
+        }
+        returnArray = setBoundry(b, x: returnArray);
+    }
+    
+    return returnArray;
+}
+
+func setBoundry(b:Int, #x:[Double]) -> [Double]
+{
+    var returnArray = x;
+    
+    return returnArray;
+    
+    /*
+    for var i = GRID_HEIGHT; i >= 1; i--
+    {
+    if(b==1)
+    {
+    returnArray[getIndex(  0, i  )] = -x[getIndex(1, i)];
+    returnArray[getIndex(GRID_HEIGHT+1, i  )] = -x[getIndex(GRID_HEIGHT, i)];
+    }
+    else
+    {
+    returnArray[getIndex(  0, i  )] = x[getIndex(1, i)];
+    returnArray[getIndex(GRID_HEIGHT+1, i  )] = x[getIndex(GRID_HEIGHT, i)];
+    }
+    
+    if(b==2)
+    {
+    returnArray[getIndex(  i, 0  )] = -x[getIndex(i, 1)];
+    returnArray[getIndex(  i, GRID_HEIGHT+1)] = -x[getIndex(i, GRID_HEIGHT)];
+    }
+    else
+    {
+    returnArray[getIndex(  i, 0  )] = x[getIndex(i, 1)];
+    returnArray[getIndex(  i, GRID_HEIGHT+1)] = x[getIndex(i, GRID_HEIGHT)];
+    }
+    }
+    
+    returnArray[getIndex(0, 0)] = 0.5 * (x[getIndex(1, 0  )] + x[getIndex(0, 1)]);
+    returnArray[getIndex(0, GRID_HEIGHT+1)] = 0.5 * (x[getIndex(1, GRID_HEIGHT+1)] + x[getIndex(  0, GRID_HEIGHT)]);
+    returnArray[getIndex(GRID_HEIGHT+1, 0)] = 0.5 * (x[getIndex(GRID_HEIGHT, 0)] + x[getIndex(GRID_HEIGHT+1, 1)]);
+    returnArray[getIndex(GRID_HEIGHT+1, GRID_HEIGHT+1)] = 0.5 * (x[getIndex(GRID_HEIGHT, GRID_HEIGHT+1)] + x[getIndex(GRID_HEIGHT+1, GRID_HEIGHT)]);
+    
+    return returnArray;
+    */
+}
+
+// No performance cost to pass as arguments makes it testable and performance testable.
+func addSourceUV(uOld: [Double], vOld:[Double], inout u:[Double], inout v:[Double]) {
+    for var i = CELL_COUNT - 1; i >= 0; i--
+    {
+        u[i] = u[i] + dt * uOld[i];
+        v[i] = v[i] + dt * vOld[i];
+    }
+}
+
+private func addSource(x:[Double], #x0:[Double]) -> [Double]
+{
+    var returnArray = [Double](count: CELL_COUNT, repeatedValue: 0.0)
+    
+    for var i = CELL_COUNT - 1; i >= 0; i--
+    {
+        returnArray[i] = x[i] + dt * x0[i];
+    }
+    
+    return returnArray;
+}
+
+func getIndex(i : Int, #j : Int) -> Int
 {
     return i + 1 + LINE_STRIDE * (j + 1);
-}
 }

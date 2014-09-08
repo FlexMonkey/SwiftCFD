@@ -10,7 +10,7 @@ import UIKit
 
 class ViewController: UIViewController {
     
-    var densities : [Double] = [Double](count: FluidDynamicsSolver_v2.CELL_COUNT, repeatedValue: 0);
+    var densities : [Double] = [Double](count: CELL_COUNT, repeatedValue: 0);
     
     @IBOutlet var uiImageView: UIImageView!
     var uiImage : UIImage?;
@@ -53,7 +53,7 @@ class ViewController: UIViewController {
                     {
                         let targetIndex = ViewController.getIndex(Int(i), j: Int(j));
                         
-                        if targetIndex > 0 && targetIndex < FluidDynamicsSolver_v2.CELL_COUNT
+                        if targetIndex > 0 && targetIndex < CELL_COUNT
                         {
                             FluidDynamicsSolver_v2.d[targetIndex] = 0.9;
                             
@@ -108,7 +108,7 @@ class ViewController: UIViewController {
 
     class func getIndex(i : Int, j : Int) -> Int
     {
-        return i + 1 + (FluidDynamicsSolver_v2.GRID_WIDTH + 2) * (j + 1);
+        return i + 1 + (GRID_WIDTH + 2) * (j + 1);
     }
     
 }
