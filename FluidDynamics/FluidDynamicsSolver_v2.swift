@@ -77,7 +77,7 @@ static func fluidDynamicsStep() -> [Double]
         }
     }
 
-    velocitySolver(d: d, u: &u, v: &v, curl: &curl)
+    (u, v, curl) = velocitySolver(d: d, u: u, v: v, curl: curl)
     densitySolver(u: u, v: v, d: &d, dOld: &dOld);
     
     println("CFD SOLVE:" + NSString(format: "%.4f", CFAbsoluteTimeGetCurrent() - startTime));
@@ -98,7 +98,7 @@ func densitySolver(#u: [Double], #v: [Double], inout #d:[Double], inout #dOld: [
     dOld = [Double](count: CELL_COUNT, repeatedValue: 0);
 }
 
-func velocitySolver(#d:[Double], inout #u: [Double], inout #v: [Double], inout #curl:[Double])
+func velocitySolver(#d:[Double], #u: [Double], #v: [Double], #curl:[Double])->(u: [Double], v: [Double], curl: [Double])
 {
     //u = addSource(u, uOld);
     //v = addSource(v, vOld);
@@ -106,37 +106,35 @@ func velocitySolver(#d:[Double], inout #u: [Double], inout #v: [Double], inout #
     // Redundant
     //addSourceUV(uOld, vOld, &u, &v);
     
-    var uvReturn = vorticityConfinement(u: u, v: v, curl: &curl);
-    
+    var uvcReturn = vorticityConfinement(u: u, v: v, curl: curl);
     // u = addSource(u, uOld);
     // v = addSource(v, vOld);
     
-    addSourceUV(uvReturn.uReturn, uvReturn.vReturn, &u, &v);
-    var uOld = uvReturn.uReturn
+    let uv0 = addSourceUV(uvcReturn.uReturn, uvcReturn.vReturn, u, v);
+    
+    var uOld = uvcReturn.uReturn
     var vOld = buoyancy(d);
     
-    v = addSource(v, x0: vOld);
+    let v0 = addSource(uv0.v, x0: vOld);
     
-    let uv = diffuseUV(uOld: u, vOld: v, u: uOld, v: vOld);
-    u = uv.u
-    v = uv.v
+    let uv1 = diffuseUV(uOld: uv0.u, vOld: v0, u: uOld, v: vOld);
     
-    project(u: &u, v: &v);
-    
-    swap(&u, &uOld);
-    swap(&v, &vOld);
+    let uv2 = project(u: uv1.u, v: uv1.v);
 
-    advectUV(uOld: uOld, vOld: vOld, u: &u, v: &v);
+    let uv3 = advectUV(uOld: uv2.u, vOld: uv2.v, u: uOld, v: vOld);
     
-    project(u: &u, v: &v);
+    let uv4 = project(u: uv3.u, v: uv3.v);
     
-    
+    return (u: uv4.u, v: uv4.v, curl: uvcReturn.cReturn)
 }
 
-func advectUV(#uOld:[Double], #vOld:[Double], inout #u: [Double], inout #v: [Double])
+func advectUV(#uOld:[Double], #vOld:[Double], #u: [Double], #v: [Double])->(u: [Double], v: [Double])
 {
     let dt0x = dt * DBL_GRID_HEIGHT;
     let dt0y = dt * DBL_GRID_HEIGHT;
+    
+    var uOut = u
+    var vOut = v
     
     //for var i = GRID_HEIGHT; i >= 1; i--
     for j in 0..<GRID_HEIGHT
@@ -171,10 +169,11 @@ func advectUV(#uOld:[Double], #vOld:[Double], inout #u: [Double], inout #v: [Dou
             let i1j0 = i1 + LINE_STRIDE * j0;
             let i1j1 = i1 + LINE_STRIDE * j1;
             
-            u[index] = s0 * (t0 * u[i0j0] + t1 * uOld[i0j1]) + s1 * (t0 * uOld[i1j0] + t1 * uOld[i1j1]);
-            v[index] = s0 * (t0 * v[i0j0] + t1 * vOld[i0j1]) + s1 * (t0 * vOld[i1j0] + t1 * vOld[i1j1]);
+            uOut[index] = s0 * (t0 * uOld[i0j0] + t1 * uOld[i0j1]) + s1 * (t0 * uOld[i1j0] + t1 * uOld[i1j1]);
+            vOut[index] = s0 * (t0 * vOld[i0j0] + t1 * vOld[i0j1]) + s1 * (t0 * vOld[i1j0] + t1 * vOld[i1j1]);
         }
     }
+    return (u: uOut, v: vOut)
 }
 
 func advect (b:Int, #d0:[Double], #du:[Double], #dv:[Double]) -> [Double]
@@ -233,7 +232,7 @@ func advect (b:Int, #d0:[Double], #du:[Double], #dv:[Double]) -> [Double]
 
 
 // project is always on u and v....
-func project(inout #u:[Double], inout #v:[Double])
+func project(u uIn:[Double], v vIn:[Double])->(u:[Double], v:[Double])
 {
     var p = [Double](count: CELL_COUNT, repeatedValue: 0);
     var div = [Double](count: CELL_COUNT, repeatedValue: 0);
@@ -249,7 +248,7 @@ func project(inout #u:[Double], inout #v:[Double])
             let top = index - LINE_STRIDE;
             let bottom = index + LINE_STRIDE;
             
-            div[index] = (u[right] - u[left] + v[bottom] - v[top]) * -0.5 / DBL_GRID_HEIGHT;
+            div[index] = (uIn[right] - uIn[left] + vIn[bottom] - vIn[top]) * -0.5 / DBL_GRID_HEIGHT;
             
             p[index] = Double(0.0);
         }
@@ -260,6 +259,9 @@ func project(inout #u:[Double], inout #v:[Double])
     p = setBoundry(0, x: p);
     
     p = linearSolver(0, x: p, x0: div, a: 1, c: 4);
+    
+    var u = [Double](count: CELL_COUNT, repeatedValue: 0);
+    var v = [Double](count: CELL_COUNT, repeatedValue: 0);
     
     //for var j = GRID_HEIGHT; j >= 1; j--
     for j in 0..<GRID_HEIGHT
@@ -280,6 +282,7 @@ func project(inout #u:[Double], inout #v:[Double])
     
     u = setBoundry(1, x: u);
     v = setBoundry(2, x: v);
+    return (u: u, v: v)
 }
 
 func diffuseUV(#uOld:[Double], #vOld:[Double], #u:[Double], #v:[Double])->(u: [Double], v: [Double])
@@ -325,10 +328,11 @@ func diffuse(b:Int, #c:[Double], #c0:[Double], #diff:Double) -> [Double]
 
 
 // always on vorticityConfinement(uOld, vOld);
-func vorticityConfinement(#u:[Double], #v:[Double], inout #curl:[Double])->(uReturn:[Double], vReturn:[Double])
+func vorticityConfinement(#u:[Double], #v:[Double], #curl:[Double])->(uReturn:[Double], vReturn:[Double], cReturn: [Double])
 {
     var uReturn = [Double](count: CELL_COUNT, repeatedValue: 0);
     var vReturn = [Double](count: CELL_COUNT, repeatedValue: 0);
+    var curlReturn = [Double](count: CELL_COUNT, repeatedValue: 0);
     //for var i = GRID_WIDTH; i >= 1; i--
     for j in 0..<GRID_HEIGHT
     {
@@ -336,7 +340,7 @@ func vorticityConfinement(#u:[Double], #v:[Double], inout #curl:[Double])->(uRet
         for i in 0..<GRID_WIDTH
         {
             let tt=curlf(i, j: j, u: u, v: v)
-            curl[getIndex(i, j: j)] = tt<0 ? tt * -1:tt;
+            curlReturn[getIndex(i, j: j)] = tt<0 ? tt * -1:tt;
         }
     }
     
@@ -369,7 +373,7 @@ func vorticityConfinement(#u:[Double], #v:[Double], inout #curl:[Double])->(uRet
             vReturn[getIndex(i, j: j)] = dw_dx *  v0;
         }
     }
-    return (uReturn: uReturn, vReturn: vReturn)
+    return (uReturn: uReturn, vReturn: vReturn, cReturn: curlReturn)
 }
 
 /*
@@ -523,12 +527,15 @@ func curlf(i:Int, #j:Int, #u: [Double], #v: [Double]) -> Double
 
 
 // No performance cost to pass as arguments makes it testable and performance testable.
-func addSourceUV(uOld: [Double], vOld:[Double], inout u:[Double], inout v:[Double]) {
+func addSourceUV(uOld: [Double], vOld:[Double], u:[Double], v:[Double])->(u: [Double], v: [Double]) {
+    var uOut = [Double](count: CELL_COUNT, repeatedValue: 0);
+    var vOut = [Double](count: CELL_COUNT, repeatedValue: 0);
     for var i = CELL_COUNT - 1; i >= 0; i--
     {
-        u[i] = u[i] + dt * uOld[i];
-        v[i] = v[i] + dt * vOld[i];
+        uOut[i] = u[i] + dt * uOld[i];
+        vOut[i] = v[i] + dt * vOld[i];
     }
+    return (u: uOut, v: vOut)
 }
 
 private func addSource(x:[Double], #x0:[Double]) -> [Double]
