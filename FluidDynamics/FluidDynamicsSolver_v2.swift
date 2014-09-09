@@ -32,20 +32,20 @@ let diff = 0.0;
 let linearSolverIterations = 2;
 
 
-struct FluidDynamicsSolver_v2
+class FluidDynamicsSolver_v2
 {
 
-var frameNumber : Int = 0;
+final var frameNumber : Int = 0;
 
-var d = [Double](count: CELL_COUNT, repeatedValue: 0);
+final var d = [Double](count: CELL_COUNT, repeatedValue: 0);
 // static var dOld = [Double](count: CELL_COUNT, repeatedValue: 0);
-var u = [Double](count: CELL_COUNT, repeatedValue: 0);
+final var u = [Double](count: CELL_COUNT, repeatedValue: 0);
     //static var uOld = [Double](count: CELL_COUNT, repeatedValue: 0);
-var v = [Double](count: CELL_COUNT, repeatedValue: 0);
+final var v = [Double](count: CELL_COUNT, repeatedValue: 0);
     //static var vOld = [Double](count: CELL_COUNT, repeatedValue: 0);
-var curl = [Double](count: CELL_COUNT, repeatedValue: 0);
+final var curl = [Double](count: CELL_COUNT, repeatedValue: 0);
 
-mutating func fluidDynamicsStep() -> [Double]
+final func fluidDynamicsStep() -> [Double]
 {
     let startTime : CFAbsoluteTime = CFAbsoluteTimeGetCurrent();
 
