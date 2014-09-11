@@ -10,8 +10,7 @@ import UIKit
 
 class ViewController: UIViewController {
     
-    var densities : [Double] = [Double](count: CELL_COUNT, repeatedValue: 0);
-    var fds = FluidDynamicsSolver_v2()
+    var densities : [Double] = [Double](count: FluidDynamicsSolver_v2.CELL_COUNT, repeatedValue: 0);
     
     @IBOutlet var uiImageView: UIImageView!
     var uiImage : UIImage?;
@@ -27,10 +26,10 @@ class ViewController: UIViewController {
         
         dispatchSolve();
     }
-
+    
     @IBAction func buttonClick(sender: AnyObject)
     {
-        fds.frameNumber = 0;
+        FluidDynamicsSolver_v2.frameNumber = 0;
     }
     
     var previousTouchX : Int?;
@@ -39,14 +38,14 @@ class ViewController: UIViewController {
     override func touchesMoved(touches: NSSet, withEvent event: UIEvent)
     {
         let touch = event.allTouches()?.anyObject()?.locationInView(uiImageView)
-     
+        
         if let touchX = touch?.x
         {
             if let touchY = touch?.y
             {
                 let scaledX = touchX / 3
                 let scaledY = touchY / 3
-
+                
                 
                 for var i = scaledX - 3; i < scaledX + 3; i++
                 {
@@ -54,17 +53,16 @@ class ViewController: UIViewController {
                     {
                         let targetIndex = ViewController.getIndex(Int(i), j: Int(j));
                         
-                        if targetIndex > 0 && targetIndex < CELL_COUNT
+                        if targetIndex > 0 && targetIndex < FluidDynamicsSolver_v2.CELL_COUNT
                         {
-                            // You can't do this while it might be being modified on the background thread.
-                            fds.d[targetIndex] = 0.9;
+                            FluidDynamicsSolver_v2.d[targetIndex] = 0.9;
                             
                             if let ptx = previousTouchX
                             {
                                 if let pty = previousTouchY
                                 {
-                                    fds.u[targetIndex] = fds.u[targetIndex] + Double((Int(scaledX) - ptx))
-                                    fds.v[targetIndex] = fds.v[targetIndex] + Double((Int(scaledY) - pty))
+                                    FluidDynamicsSolver_v2.u[targetIndex] = FluidDynamicsSolver_v2.u[targetIndex] + Double((Int(scaledX) - ptx))
+                                    FluidDynamicsSolver_v2.v[targetIndex] = FluidDynamicsSolver_v2.v[targetIndex] + Double((Int(scaledY) - pty))
                                 }
                             }
                         }
@@ -84,15 +82,15 @@ class ViewController: UIViewController {
     
     func dispatchSolve()
     {
-        
         Async.background
-        {
-            self.densities = self.fds.fluidDynamicsStep()
-        }
-        .main
-        {
-            self.dispatchRender();
-            self.dispatchSolve();
+            {
+                self.densities = FluidDynamicsSolver_v2.fluidDynamicsStep()
+            }
+            .main
+            {
+                self.dispatchRender();
+                
+                self.dispatchSolve();
         }
     }
     
@@ -107,10 +105,10 @@ class ViewController: UIViewController {
                 self.uiImageView.image = self.uiImage;
         }
     }
-
+    
     class func getIndex(i : Int, j : Int) -> Int
     {
-        return i + 1 + (GRID_WIDTH + 2) * (j + 1);
+        return i + (FluidDynamicsSolver_v2.GRID_WIDTH) * j;
     }
     
 }
