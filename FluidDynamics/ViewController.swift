@@ -51,7 +51,7 @@ class ViewController: UIViewController {
                 {
                     for var j = scaledY - 3; j < scaledY + 3; j++
                     {
-                        let targetIndex = ViewController.getIndex(Int(i), j: Int(j));
+                        let targetIndex = FluidDynamicsSolver_v2.getIndex(Int(i), j: Int(j));
                         
                         if targetIndex > 0 && targetIndex < FluidDynamicsSolver_v2.CELL_COUNT
                         {
@@ -106,10 +106,7 @@ class ViewController: UIViewController {
         }
     }
     
-    class func getIndex(i : Int, j : Int) -> Int
-    {
-        return i + (FluidDynamicsSolver_v2.GRID_WIDTH) * j;
-    }
+
     
 }
 

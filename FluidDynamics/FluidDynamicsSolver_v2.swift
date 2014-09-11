@@ -29,7 +29,7 @@ struct FluidDynamicsSolver_v2
     static let DBL_GRID_HEIGHT = Double(GRID_HEIGHT);
     static let CELL_COUNT = (GRID_WIDTH + 2) * (GRID_HEIGHT + 2);
     
-    static let dt = 0.1;
+    static let dt = 0.05;
     static let visc = 0.0;
     static let diff = 0.0;
     static let linearSolverIterations = 2;
@@ -56,18 +56,18 @@ struct FluidDynamicsSolver_v2
                     
                     if random > frameNumber
                     {
-                        d[ViewController.getIndex(i, j: j)] = d[ViewController.getIndex(i, j: j)] + Double(arc4random() % 25) / 25;
+                        d[FluidDynamicsSolver_v2.getIndex(i, j: j)] = d[FluidDynamicsSolver_v2.getIndex(i, j: j)] + Double(arc4random() % 25) / 25;
                         
-                        d[ViewController.getIndex(i, j: j)] = d[ViewController.getIndex(i, j: j)] > 1 ? 1 : d[ViewController.getIndex(i, j: j)];
+                        d[FluidDynamicsSolver_v2.getIndex(i, j: j)] = d[FluidDynamicsSolver_v2.getIndex(i, j: j)] > 1 ? 1 : d[FluidDynamicsSolver_v2.getIndex(i, j: j)];
                         
                         let randomU = (Double((arc4random() % 100)) / 100) * ((arc4random() % 100) >= 50 ? -4.0 : 4.0);
-                        u[ViewController.getIndex(i, j: j)] = randomU
+                        u[FluidDynamicsSolver_v2.getIndex(i, j: j)] = randomU
                         
                         let randomV = (Double((arc4random() % 100)) / 100) * ((arc4random() % 100) >= 50 ? -4.0 : 4.5);
-                        v[ViewController.getIndex(i, j: j)] = randomV
+                        v[FluidDynamicsSolver_v2.getIndex(i, j: j)] = randomV
                         
                         let randomCurl = (Double((arc4random() % 100)) / 100) * ((arc4random() % 100) >= 50 ? -4.0 : 4.0);
-                        curl[ViewController.getIndex(i, j: j)] = randomCurl
+                        curl[FluidDynamicsSolver_v2.getIndex(i, j: j)] = randomCurl
                     }
                 }
             }
@@ -141,7 +141,7 @@ struct FluidDynamicsSolver_v2
         {
             for var j = GRID_HEIGHT; j >= 1; j--
             {
-                let index = ViewController.getIndex(i, j :j);
+                let index = FluidDynamicsSolver_v2.getIndex(i, j :j);
                 
                 var x = Double(i) - dt0x * uOld[index];
                 var y = Double(j) - dt0y * vOld[index];
@@ -166,7 +166,7 @@ struct FluidDynamicsSolver_v2
                 }
                 
                 let i0 = Int(x);
-                let i1 = i0 + 1.0;
+                let i1 = i0 + 1;
                 
                 let j0 = Int(y);
                 let j1 = j0 + 1;
@@ -201,7 +201,7 @@ struct FluidDynamicsSolver_v2
         {
             for var j = GRID_HEIGHT; j >= 1; j--
             {
-                let index = ViewController.getIndex(i, j: j);
+                let index = FluidDynamicsSolver_v2.getIndex(i, j: j);
                 
                 var x = Double(i) - dt0x * du[index];
                 var y = Double(j) - dt0y * dv[index];
@@ -226,7 +226,7 @@ struct FluidDynamicsSolver_v2
                 }
                 
                 let i0 = Int(x);
-                let i1 = i0 + 1.0;
+                let i1 = i0 + 1;
                 
                 let j0 = Int(y);
                 let j1 = j0 + 1;
@@ -264,7 +264,7 @@ struct FluidDynamicsSolver_v2
         {
             for var j = GRID_HEIGHT; j >= 1; j--
             {
-                let index = ViewController.getIndex(i, j : j);
+                let index = FluidDynamicsSolver_v2.getIndex(i, j : j);
                 let left = index - 1;
                 let right = index + 1;
                 let top = index - GRID_WIDTH;
@@ -286,7 +286,7 @@ struct FluidDynamicsSolver_v2
         {
             for var j = GRID_HEIGHT; j >= 1; j--
             {
-                let index = ViewController.getIndex(i, j : j);
+                let index = FluidDynamicsSolver_v2.getIndex(i, j : j);
                 let left = index - 1;
                 let right = index + 1;
                 let top = index - GRID_WIDTH;
@@ -312,7 +312,7 @@ struct FluidDynamicsSolver_v2
             {
                 for var j = GRID_HEIGHT; j >= 1; j--
                 {
-                    let index = ViewController.getIndex(i, j: j);
+                    let index = FluidDynamicsSolver_v2.getIndex(i, j: j);
                     let left = index - 1;
                     let right = index + 1;
                     let top = index - GRID_WIDTH;
@@ -336,7 +336,7 @@ struct FluidDynamicsSolver_v2
             {
                 for var j = GRID_HEIGHT; j >= 1; j--
                 {
-                    let index = ViewController.getIndex(i, j: j);
+                    let index = FluidDynamicsSolver_v2.getIndex(i, j: j);
                     let left = index - 1;
                     let right = index + 1;
                     let top = index - GRID_WIDTH;
@@ -373,7 +373,7 @@ struct FluidDynamicsSolver_v2
         {
             for var j = 1; j <= GRID_HEIGHT; j++
             {
-                Tamb += d[ViewController.getIndex(i, j: j)];
+                Tamb += d[FluidDynamicsSolver_v2.getIndex(i, j: j)];
             }
         }
         
@@ -385,7 +385,7 @@ struct FluidDynamicsSolver_v2
         {
             for var j = GRID_HEIGHT; j >= 1; j--
             {
-                let index = ViewController.getIndex(i, j: j);
+                let index = FluidDynamicsSolver_v2.getIndex(i, j: j);
                 
                 vOld[index] = a * d[index] + -b * (d[index] - Tamb);
             }
@@ -400,7 +400,7 @@ struct FluidDynamicsSolver_v2
             for var j = GRID_HEIGHT; j >= 1; j--
             {
                 let tt=curlf(i, j: j)
-                curl[ViewController.getIndex(i, j: j)] = tt<0 ? tt * -1:tt;
+                curl[FluidDynamicsSolver_v2.getIndex(i, j: j)] = tt<0 ? tt * -1:tt;
             }
         }
         
@@ -408,7 +408,7 @@ struct FluidDynamicsSolver_v2
         {
             for var j = 2; j < GRID_HEIGHT; j++
             {
-                let index = ViewController.getIndex(i, j: j);
+                let index = FluidDynamicsSolver_v2.getIndex(i, j: j);
                 let left = index - 1;
                 let right = index + 1;
                 let top = index - GRID_WIDTH;
@@ -427,15 +427,15 @@ struct FluidDynamicsSolver_v2
                 var v = curlf(i, j: j);
                 
                 // N x w
-                uOld[ViewController.getIndex(i, j: j)] = dw_dy * -v;
-                vOld[ViewController.getIndex(i, j: j)] = dw_dx *  v;
+                uOld[FluidDynamicsSolver_v2.getIndex(i, j: j)] = dw_dy * -v;
+                vOld[FluidDynamicsSolver_v2.getIndex(i, j: j)] = dw_dx *  v;
             }
         }
     }
     
     static func curlf(i:Int, j:Int) -> Double
     {
-        let index = ViewController.getIndex(i, j: j);
+        let index = FluidDynamicsSolver_v2.getIndex(i, j: j);
         let left = index - 1;
         let right = index + 1;
         let top = index - GRID_WIDTH;
@@ -529,6 +529,11 @@ struct FluidDynamicsSolver_v2
         let tmp = v;
         v = vOld;
         vOld = tmp;
+    }
+    
+    static func getIndex(i : Int, j : Int) -> Int
+    {
+        return i + (FluidDynamicsSolver_v2.GRID_WIDTH) * j;
     }
     
 }
