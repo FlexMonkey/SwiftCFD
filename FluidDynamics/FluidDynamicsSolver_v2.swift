@@ -29,7 +29,7 @@ struct FluidDynamicsSolver_v2
     static let DBL_GRID_HEIGHT = Double(GRID_HEIGHT);
     static let CELL_COUNT = (GRID_WIDTH + 2) * (GRID_HEIGHT + 2);
     
-    static let dt = 0.05;
+    static let dt = 0.075;
     static let visc = 0.0;
     static let diff = 0.0;
     static let linearSolverIterations = 2;
@@ -181,8 +181,8 @@ struct FluidDynamicsSolver_v2
                 let i1j0 = i1 + GRID_WIDTH * j0;
                 let i1j1 = i1 + GRID_WIDTH * j1;
                 
-                u[index] = s0 * (t0 * u[i0j0] + t1 * uOld[i0j1]) + s1 * (t0 * uOld[i1j0] + t1 * uOld[i1j1]);
-                v[index] = s0 * (t0 * v[i0j0] + t1 * vOld[i0j1]) + s1 * (t0 * vOld[i1j0] + t1 * vOld[i1j1]);
+                u[index] = s0 * (t0 * uOld[i0j0] + t1 * uOld[i0j1]) + s1 * (t0 * uOld[i1j0] + t1 * uOld[i1j1]);
+                v[index] = s0 * (t0 * vOld[i0j0] + t1 * vOld[i0j1]) + s1 * (t0 * vOld[i1j0] + t1 * vOld[i1j1]);
             }
         }
         
@@ -241,9 +241,7 @@ struct FluidDynamicsSolver_v2
                 let i1j0 = i1 + GRID_WIDTH * j0;
                 let i1j1 = i1 + GRID_WIDTH * j1;
                 
-                var cellValue = s0 * (t0 * d0[i0j0] + t1 * d0[i0j1]) + s1 * (t0 * d0[i1j0] + t1 * d0[i1j1]);
-                
-                //d[getIndex(i, j)] = d[getIndex(i, j)] * 0.999;
+                let cellValue = 0.99 * s0 * (t0 * d0[i0j0] + t1 * d0[i0j1]) + s1 * (t0 * d0[i1j0] + t1 * d0[i1j1]);
                 
                 returnArray[index] = cellValue;
             }
@@ -458,31 +456,31 @@ struct FluidDynamicsSolver_v2
         {
         if(b==1)
         {
-        returnArray[getIndex(  0, i  )] = -x[getIndex(1, i)];
-        returnArray[getIndex(GRID_HEIGHT+1, i  )] = -x[getIndex(GRID_HEIGHT, i)];
+            returnArray[getIndex(  0, j :i  )] = -x[getIndex(1, j: i)];
+            returnArray[getIndex(GRID_HEIGHT+1, j: i  )] = -x[getIndex(GRID_HEIGHT, j: i)];
         }
         else
         {
-        returnArray[getIndex(  0, i  )] = x[getIndex(1, i)];
-        returnArray[getIndex(GRID_HEIGHT+1, i  )] = x[getIndex(GRID_HEIGHT, i)];
+            returnArray[getIndex(  0, j: i  )] = x[getIndex(1, j :i)];
+            returnArray[getIndex(GRID_HEIGHT+1, j :i  )] = x[getIndex(GRID_HEIGHT,j : i)];
         }
         
         if(b==2)
         {
-        returnArray[getIndex(  i, 0  )] = -x[getIndex(i, 1)];
-        returnArray[getIndex(  i, GRID_HEIGHT+1)] = -x[getIndex(i, GRID_HEIGHT)];
+            returnArray[getIndex(  i, j :0  )] = -x[getIndex(i, j : 1)];
+            returnArray[getIndex(  i, j : GRID_HEIGHT+1)] = -x[getIndex(i, j : GRID_HEIGHT)];
         }
         else
         {
-        returnArray[getIndex(  i, 0  )] = x[getIndex(i, 1)];
-        returnArray[getIndex(  i, GRID_HEIGHT+1)] = x[getIndex(i, GRID_HEIGHT)];
+            returnArray[getIndex(  i, j : 0  )] = x[getIndex(i, j : 1)];
+            returnArray[getIndex(  i, j : GRID_HEIGHT+1)] = x[getIndex(i, j : GRID_HEIGHT)];
         }
         }
         
-        returnArray[getIndex(0, 0)] = 0.5 * (x[getIndex(1, 0  )] + x[getIndex(0, 1)]);
-        returnArray[getIndex(0, GRID_HEIGHT+1)] = 0.5 * (x[getIndex(1, GRID_HEIGHT+1)] + x[getIndex(  0, GRID_HEIGHT)]);
-        returnArray[getIndex(GRID_HEIGHT+1, 0)] = 0.5 * (x[getIndex(GRID_HEIGHT, 0)] + x[getIndex(GRID_HEIGHT+1, 1)]);
-        returnArray[getIndex(GRID_HEIGHT+1, GRID_HEIGHT+1)] = 0.5 * (x[getIndex(GRID_HEIGHT, GRID_HEIGHT+1)] + x[getIndex(GRID_HEIGHT+1, GRID_HEIGHT)]);
+        returnArray[getIndex(0, j : 0)] = 0.5 * (x[getIndex(1, j : 0  )] + x[getIndex(0, j : 1)]);
+        returnArray[getIndex(0, j : GRID_HEIGHT+1)] = 0.5 * (x[getIndex(1, j : GRID_HEIGHT+1)] + x[getIndex(  0, j : GRID_HEIGHT)]);
+        returnArray[getIndex(GRID_HEIGHT+1, j : 0)] = 0.5 * (x[getIndex(GRID_HEIGHT, j : 0)] + x[getIndex(GRID_HEIGHT+1, j : 1)]);
+        returnArray[getIndex(GRID_HEIGHT+1, j : GRID_HEIGHT+1)] = 0.5 * (x[getIndex(GRID_HEIGHT, j : GRID_HEIGHT+1)] + x[getIndex(GRID_HEIGHT+1, j : GRID_HEIGHT)]);
         
         return returnArray;
         */
