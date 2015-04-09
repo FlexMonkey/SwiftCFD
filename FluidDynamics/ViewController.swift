@@ -34,10 +34,13 @@ class ViewController: UIViewController {
     
     var previousTouchX : Int?;
     var previousTouchY : Int?;
-    
-    override func touchesMoved(touches: NSSet, withEvent event: UIEvent)
+ 
+ 
+    override func touchesMoved(touches: Set<NSObject>, withEvent event: UIEvent)
     {
-        let touch = event.allTouches()?.anyObject()?.locationInView(uiImageView)
+        let touch:CGPoint? = (event.allTouches()?.first as! UITouch).locationInView(uiImageView)
+        
+        //let touch = event.allTouches()?.first?.locationInView(uiImageView)
         
         if let touchX = touch?.x
         {
@@ -74,7 +77,8 @@ class ViewController: UIViewController {
         }
     }
     
-    override func touchesEnded(touches: NSSet, withEvent event: UIEvent)
+    
+    override func touchesEnded(touches: Set<NSObject>, withEvent event: UIEvent)
     {
         previousTouchX = nil;
         previousTouchY = nil;

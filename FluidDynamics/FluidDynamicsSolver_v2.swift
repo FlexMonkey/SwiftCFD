@@ -76,7 +76,7 @@ struct FluidDynamicsSolver_v2
         velocitySolver();
         densitySolver();
         
-        println("CFD SOLVE:" + NSString(format: "%.4f", CFAbsoluteTimeGetCurrent() - startTime));
+        println("CFD SOLVE:" + (NSString(format: "%.4f", CFAbsoluteTimeGetCurrent() - startTime) as String));
         
         return d;
     }

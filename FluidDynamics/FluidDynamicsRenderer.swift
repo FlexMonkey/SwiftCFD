@@ -13,19 +13,19 @@ import Foundation
 import UIKit
 
 private let rgbColorSpace = CGColorSpaceCreateDeviceRGB()
-private let bitmapInfo:CGBitmapInfo = CGBitmapInfo(CGImageAlphaInfo.PremultipliedFirst.toRaw())
+private let bitmapInfo:CGBitmapInfo = CGBitmapInfo(CGImageAlphaInfo.PremultipliedFirst.rawValue)
 
-private func imageFromARGB32Bitmap(pixels:[PixelData], width:UInt, height:UInt)->UIImage
+private func imageFromARGB32Bitmap(pixels:[PixelData], width:Int, height:Int)->UIImage
 {
-    let bitsPerComponent:UInt = 8
-    let bitsPerPixel:UInt = 32
+    let bitsPerComponent:Int = 8
+    let bitsPerPixel:Int = 32
     
     var data = pixels // Copy to mutable []
     let providerRef = CGDataProviderCreateWithCFData(NSData(bytes: &data, length: data.count * sizeof(PixelData)))
     
-    let cgim = CGImageCreate(width, height, bitsPerComponent, bitsPerPixel, width * UInt(sizeof(PixelData)), rgbColorSpace,	bitmapInfo, providerRef, nil, true, kCGRenderingIntentDefault)
+    let cgim = CGImageCreate(width, height, bitsPerComponent, bitsPerPixel, width * Int(sizeof(PixelData)), rgbColorSpace,	bitmapInfo, providerRef, nil, true, kCGRenderingIntentDefault)
     
-    return UIImage(CGImage: cgim);
+    return UIImage(CGImage: cgim)!;
 }
 
 func renderFluidDynamics(densities : [Double]) -> UIImage
@@ -41,7 +41,7 @@ func renderFluidDynamics(densities : [Double]) -> UIImage
         pixelArray[i].b = pixelValue;
     }
     
-    let outputImage = imageFromARGB32Bitmap(pixelArray, UInt(FluidDynamicsSolver_v2.GRID_WIDTH), UInt(FluidDynamicsSolver_v2.GRID_HEIGHT))
+    let outputImage = imageFromARGB32Bitmap(pixelArray, FluidDynamicsSolver_v2.GRID_WIDTH, FluidDynamicsSolver_v2.GRID_HEIGHT)
     
     return outputImage;
 }
