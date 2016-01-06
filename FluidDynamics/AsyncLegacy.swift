@@ -33,7 +33,7 @@ import Foundation
 
 // HACK: For Beta 5, 6
 prefix func +(v: qos_class_t) -> Int {
-	return Int(v.value)
+	return Int(v.rawValue)
 }
 
 private class GCD {
@@ -130,25 +130,25 @@ extension Async { // Static methods
         }
 		return asyncBlock
 	}
-	class func main(#after: Double, block: dispatch_block_t) -> Async {
+	class func main(after after: Double, block: dispatch_block_t) -> Async {
 		return Async.after(after, block: block, inQueue: GCD.mainQueue())
 	}
-	class func userInteractive(#after: Double, block: dispatch_block_t) -> Async {
+	class func userInteractive(after after: Double, block: dispatch_block_t) -> Async {
 		return Async.after(after, block: block, inQueue: GCD.userInteractiveQueue())
 	}
-	class func userInitiated(#after: Double, block: dispatch_block_t) -> Async {
+	class func userInitiated(after after: Double, block: dispatch_block_t) -> Async {
 		return Async.after(after, block: block, inQueue: GCD.userInitiatedQueue())
 	}
-	class func default_(#after: Double, block: dispatch_block_t) -> Async {
+	class func default_(after after: Double, block: dispatch_block_t) -> Async {
 		return Async.after(after, block: block, inQueue: GCD.defaultQueue())
 	}
-	class func utility(#after: Double, block: dispatch_block_t) -> Async {
+	class func utility(after after: Double, block: dispatch_block_t) -> Async {
 		return Async.after(after, block: block, inQueue: GCD.utilityQueue())
 	}
-	class func background(#after: Double, block: dispatch_block_t) -> Async {
+	class func background(after after: Double, block: dispatch_block_t) -> Async {
 		return Async.after(after, block: block, inQueue: GCD.backgroundQueue())
 	}
-	class func customQueue(#after: Double, queue: dispatch_queue_t, block: dispatch_block_t) -> Async {
+	class func customQueue(after after: Double, queue: dispatch_queue_t, block: dispatch_block_t) -> Async {
 		return Async.after(after, block: block, inQueue: queue)
 	}
 }
@@ -204,7 +204,7 @@ extension Async { // Regualar methods matching static once
 
 	private func after(seconds: Double, block chainingBlock: dispatch_block_t, runInQueue queue: dispatch_queue_t) -> Async {
         
-        var asyncBlock = Async()
+        let asyncBlock = Async()
         
         dispatch_group_notify(self.dgroup, queue)
         {
@@ -222,25 +222,25 @@ extension Async { // Regualar methods matching static once
 		// Wrap block in a struct since dispatch_block_t can't be extended
 		return asyncBlock
 	}
-	func main(#after: Double, block: dispatch_block_t) -> Async {
+	func main(after after: Double, block: dispatch_block_t) -> Async {
 		return self.after(after, block: block, runInQueue: GCD.mainQueue())
 	}
-	func userInteractive(#after: Double, block: dispatch_block_t) -> Async {
+	func userInteractive(after after: Double, block: dispatch_block_t) -> Async {
 		return self.after(after, block: block, runInQueue: GCD.userInteractiveQueue())
 	}
-	func userInitiated(#after: Double, block: dispatch_block_t) -> Async {
+	func userInitiated(after after: Double, block: dispatch_block_t) -> Async {
 		return self.after(after, block: block, runInQueue: GCD.userInitiatedQueue())
 	}
-	func default_(#after: Double, block: dispatch_block_t) -> Async {
+	func default_(after after: Double, block: dispatch_block_t) -> Async {
 		return self.after(after, block: block, runInQueue: GCD.defaultQueue())
 	}
-	func utility(#after: Double, block: dispatch_block_t) -> Async {
+	func utility(after after: Double, block: dispatch_block_t) -> Async {
 		return self.after(after, block: block, runInQueue: GCD.utilityQueue())
 	}
-	func background(#after: Double, block: dispatch_block_t) -> Async {
+	func background(after after: Double, block: dispatch_block_t) -> Async {
 		return self.after(after, block: block, runInQueue: GCD.backgroundQueue())
 	}
-	func customQueue(#after: Double, queue: dispatch_queue_t, block: dispatch_block_t) -> Async {
+	func customQueue(after after: Double, queue: dispatch_queue_t, block: dispatch_block_t) -> Async {
 		return self.after(after, block: block, runInQueue: queue)
 	}
 

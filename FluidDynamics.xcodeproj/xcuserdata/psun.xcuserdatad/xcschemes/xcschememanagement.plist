@@ -4,11 +4,6 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
-		<key>FluidDynamics-Optimised.xcscheme</key>
-		<dict>
-			<key>orderHint</key>
-			<integer>1</integer>
-		</dict>
 		<key>FluidDynamics.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
