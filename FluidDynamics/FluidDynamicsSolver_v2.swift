@@ -76,7 +76,7 @@ struct FluidDynamicsSolver_v2
         velocitySolver();
         densitySolver();
         
-        println("CFD SOLVE:" + (NSString(format: "%.4f", CFAbsoluteTimeGetCurrent() - startTime) as String));
+        print("CFD SOLVE:" + (NSString(format: "%.4f", CFAbsoluteTimeGetCurrent() - startTime) as String));
         
         return d;
     }
@@ -132,7 +132,7 @@ struct FluidDynamicsSolver_v2
     
     static func advectUV()
     {
-        let dt0 = dt * DBL_GRID_HEIGHT;
+        //let dt0 = dt * DBL_GRID_HEIGHT;
         
         let dt0x = dt * DBL_GRID_HEIGHT;
         let dt0y = dt * DBL_GRID_HEIGHT;
@@ -192,7 +192,7 @@ struct FluidDynamicsSolver_v2
     {
         var returnArray = [Double](count: CELL_COUNT, repeatedValue: 0.0)
         
-        let dt0 = dt * DBL_GRID_HEIGHT;
+        //let dt0 = dt * DBL_GRID_HEIGHT;
         
         let dt0x = dt * DBL_GRID_HEIGHT;
         let dt0y = dt * DBL_GRID_HEIGHT;
@@ -362,8 +362,8 @@ struct FluidDynamicsSolver_v2
     static func buoyancy()
     {
         var Tamb:Double = 0;
-        var a:Double = 0.000625 //0.000625;
-        var b:Double = 0.025 //0.025;
+        let a:Double = 0.000625 //0.000625;
+        let b:Double = 0.025 //0.025;
         
         
         // sum all temperatures
@@ -422,7 +422,7 @@ struct FluidDynamicsSolver_v2
                 dw_dx /= length;
                 dw_dy /= length;
                 
-                var v = curlf(i, j: j);
+                let v = curlf(i, j: j);
                 
                 // N x w
                 uOld[FluidDynamicsSolver_v2.getIndex(i, j: j)] = dw_dy * -v;
@@ -439,15 +439,15 @@ struct FluidDynamicsSolver_v2
         let top = index - GRID_WIDTH;
         let bottom = index + GRID_WIDTH;
         
-        var du_dy:Double = (u[bottom] - u[top]) * 0.5;
-        var dv_dx:Double = (v[right] - v[left]) * 0.5;
+        let du_dy:Double = (u[bottom] - u[top]) * 0.5;
+        let dv_dx:Double = (v[right] - v[left]) * 0.5;
         
         return du_dy - dv_dx;
     }
     
     static func setBoundry(b:Int, x:[Double]) -> [Double]
     {
-        var returnArray = x;
+        let returnArray = x;
         
         return returnArray;
         
